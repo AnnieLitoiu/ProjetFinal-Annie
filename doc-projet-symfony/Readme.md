@@ -21,6 +21,10 @@ Une question est composée de plusieurs propositions.
 
 Une proposition est toujours liée à une seule question.
 
+Une question a plusieurs réponses.
+
+Une réponse est toujours liée à une seule question.
+
 Un candidat, lors d’une tentative, associe une ou plusieurs propositions comme réponses aux questions.
 
 Un admin peut créer, modifier, publier ou supprimer des quiz.
