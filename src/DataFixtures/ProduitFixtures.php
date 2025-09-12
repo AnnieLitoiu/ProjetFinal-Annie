@@ -18,11 +18,9 @@ class ProduitFixtures extends Fixture
             $produit->setNom($faker->word());
             $produit->setPrix(rand(30, 100));
             $manager->persist($produit);
-
-
-
-
-            $manager->flush();
         }
+        $manager->flush();
     }
 }
+
+
