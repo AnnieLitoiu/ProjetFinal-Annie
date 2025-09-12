@@ -1,0 +1,16 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+    Bonjour ! <br>
+    Tout va bien finalement !
+    {% for i in 1..10 %}
+    <h4>Hello<h4>
+    {% endfor %}
+
+{% endblock %}
+
+{% block javascripts %}
+    <script>
+        alert("coucou");
+    </script>
+{% endblock %}
