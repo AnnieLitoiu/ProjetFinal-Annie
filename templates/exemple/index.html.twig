@@ -1,9 +1,9 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Hello ExempleController!{% endblock %}
+{% block title %}{{parent()}}Hello ExempleController!{% endblock %}
 
 {% block body %}
 
-Coucou
-
+{{ parent() }}
+coucou
 {% endblock %}
