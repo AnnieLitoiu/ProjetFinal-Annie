@@ -30,7 +30,7 @@ class Tentative
     private ?Utilisateur $utilisateur = null;
 
     #[ORM\ManyToOne(inversedBy: 'tentatives')]
-    // #[ORM\JoinColumn(nullable: false)]
+    #[ORM\JoinColumn(nullable: false)]
     private ?Quiz $quiz = null;
 
     public function getId(): ?int
