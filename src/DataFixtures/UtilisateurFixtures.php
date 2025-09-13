@@ -22,7 +22,7 @@ class UtilisateurFixtures extends Fixture
         //     $utilisateur->setMotDePasse("Annie#123" . $i);
         //     $manager->persist($utilisateur);
         // }
-        for ($i = 0; $i < 10; $i++) {
+        for ($i = 0; $i < 50; $i++) {
             $utilisateur = new Utilisateur();
             $utilisateur->setNom($faker->name);
             $utilisateur->setRoles($faker->randomElements(["admin" , "user"]));
