@@ -27,10 +27,6 @@ class Tentative
 
     #[ORM\ManyToOne(inversedBy: 'tentatives')]
     #[ORM\JoinColumn(nullable: false)]
-    private ?Utilisateur $utilisateur = null;
-
-    #[ORM\ManyToOne(inversedBy: 'tentatives')]
-    #[ORM\JoinColumn(nullable: false)]
     private ?Quiz $quiz = null;
 
     public function getId(): ?int
@@ -82,18 +78,6 @@ class Tentative
     public function setScore(?int $score): static
     {
         $this->score = $score;
-
-        return $this;
-    }
-
-    public function getUtilisateur(): ?Utilisateur
-    {
-        return $this->utilisateur;
-    }
-
-    public function setUtilisateur(?Utilisateur $utilisateur): static
-    {
-        $this->utilisateur = $utilisateur;
 
         return $this;
     }
