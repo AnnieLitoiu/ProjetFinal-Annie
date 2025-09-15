@@ -44,6 +44,12 @@ symfony composer req symfony/orm-pack
 symfony composer req symfony/maker-bundle --dev
 ``` 
 
+## Créer un controller 
+``` 
+symfony console make:controller
+
+``` 
+
 
 # Lancer la création de la BD. 
 ``` 
