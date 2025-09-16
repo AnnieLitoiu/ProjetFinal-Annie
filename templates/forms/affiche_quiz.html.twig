@@ -1,0 +1,15 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+
+{#{{ dump (quiz) }}#}
+
+    {% for q in quiz %}
+    <p> 
+        Titre: {{ q.titre }}<br>
+
+        Niveau: {{ q.niveau }} 
+    <p>
+    {% endfor %}
+
+{% endblock %}

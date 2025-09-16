@@ -22,21 +22,33 @@ final class FormsController extends AbstractController
     }
 
 
-    #[Route('/forms/insert/quiz', name:'app_forms_insert_quiz')]
-    public function insertQuiz(Request $req, EntityManagerInterface $em):Response{
+    #[Route('/forms/insert/quiz', name: 'app_forms_insert_quiz')]
+    public function insertQuiz(Request $req, EntityManagerInterface $em): Response
+    {
         $quiz = new Quiz();
 
-        $formQuiz = $this->createForm (QuizType::class, $quiz);
+        $formQuiz = $this->createForm(QuizType::class, $quiz);
+        $formQuiz->handleRequest($req);
 
-        if ($formQuiz->isSubmitted()){
+        if ($formQuiz->isSubmitted()) {
+
             $em->persist($quiz);
             $em->flush();
-            return $this->redirectToRoute('app_forms_resultat_traitement_form_insert');
-        }
-        else {
+
+            return $this->redirectToRoute('app_forms_affiche_quiz');
+        } else {
             $vars = ['formQuiz' => $formQuiz];
-            return $this->render ('forms/affiche_form_insert_quiz.html.twig', $vars);
+            return $this->render('forms/affiche_form_insert_quiz.html.twig', $vars);
         }
     }
 
+    #[Route('/forms/affiche/quiz', name: 'app_forms_affiche_quiz')]
+    public function afficherQuiz(EntityManagerInterface $em): Response
+    {
+        $repository = $em->getRepository(Quiz::class);
+        $quiz = $repository->findAll();
+        $vars = ['quiz'=> $quiz];
+
+        return $this->render('forms/affiche_quiz.html.twig', $vars);
+    }
 }

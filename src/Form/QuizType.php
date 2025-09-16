@@ -15,8 +15,7 @@ class QuizType extends AbstractType
     {
         $builder
             ->add('titre', TextType::class)
-            ->add('niveau', IntegerType::class )
-        ;
+            ->add('niveau', IntegerType::class );
     }
 
     public function configureOptions(OptionsResolver $resolver): void
