@@ -15,10 +15,7 @@ final class FormsController extends AbstractController
     #[Route('/forms', name: 'app_forms')]
     public function afficherForm(): Response
     {
-        $formQuiz = $this->createForm(QuizType::class);
-        $vars = ['formQuiz' => $formQuiz];
-
-        return $this->render('forms/afficher_form.html.twig', $vars);
+       return $this->redirectToRoute('app_forms_affiche_quiz'); 
     }
 
 
