@@ -1,0 +1,14 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Hello FormsController!{% endblock %}
+
+{% block body %}
+
+{{ form_start (formQuiz) }}
+{{ form_widget (formQuiz) }}
+
+<input type = "submit" value="Commencer">
+
+{{ form_end (formQuiz) }}
+
+{% endblock %}
