@@ -1,0 +1,13 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Hello AccueilController!{% endblock %}
+
+{% block body %}
+Bonjour, bienvenue au site
+
+<br>Voici le nom : {{ nom }} 
+<br>Voici le hobby : {{ hobby }}
+<br>Voici la date de naissance : {{ dateNaissance.format("Y-m-d") }}
+<br>Il habite : {{ adresse.rue }}, numéro: {{ adresse.numero }}
+<br>Commune : {{ adresse.codePostal }}
+{% endblock %}

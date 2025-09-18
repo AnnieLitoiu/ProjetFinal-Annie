@@ -108,9 +108,31 @@ Installez le support pour les fixtures:
 symfony composer req --dev orm-fixtures
 composer require fakerphp/faker
 symfony console make:fixture
-symfony console doctrine:fixtures:load --append
+symfony console doctrine:fixtures:load --append 
+symfony console d:f:l 
 
 ```
+
+
+## Formulaire
+```
+symfony composer req symfony/form
+symfony console make:form
+
+
+```
+
+
+## Utilisateur/Login/Logout
+```
+symfony composer req symfony/security-bundle
+symfony console make:user
+symfony console make:security:form-login
+composer require --dev orm-fixtures
+symfony console security:hash-password
+
+```
+
 
 ## databaseRestart.bat (fichier à ajouter) 
 ```
