@@ -82,6 +82,7 @@ git reset --hard HEAD
 git clean -df
 git clean -f
 git switch "branche"
+git commit --amend -m "nouveaumessage" //renommer le dernier commit avant push
 
 ```
 ## Fixtures
