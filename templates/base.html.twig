@@ -12,6 +12,17 @@
         {% endblock %}
     </head>
     <body>
+        {% block navigation %}
+            <header>
+                {# {{ dump (app.user) }} #}
+                <h5>{% if app.user %} 
+                        {{ app.user.email }} 
+                    {% endif %}
+                </h5>
+                <a href="{{ path('app_logout') }}">Se deconnecter</a>
+            </header>
+        {% endblock %}
+        
         {% block body %}Je suis la base{% endblock %}
     </body>
 </html>

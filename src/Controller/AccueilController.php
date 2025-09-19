@@ -12,6 +12,7 @@ final class AccueilController extends AbstractController
     public function index(): Response
     {
         
+<<<<<<< HEAD
         $adresse = ['rue' => 'Avenue Cicéron',
                     'numero' => 100,
                     'codePostal' => '1000'
@@ -22,6 +23,21 @@ final class AccueilController extends AbstractController
                 'dateNaissance' => new \DateTime ("2016-5-16"), // passage d'un objet
                 'adresse' => $adresse
         ]; 
+=======
+        $adresse = [
+            'rue' => 'Avenue Ciceron',
+            'numero' => 100,
+            'codePostal' => '1000'
+        ];
+
+        $vars = [
+            'nom' => 'Tommy',
+            'hobby' => 'dormir',
+            'dateNaissance' => new \DateTime("2019-5-16"),
+            'adresse' => $adresse
+        ];
+
+>>>>>>> login-pass
         return $this->render('accueil/index.html.twig', $vars);
     }
 }

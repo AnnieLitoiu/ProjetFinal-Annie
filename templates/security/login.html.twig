@@ -2,6 +2,10 @@
 
 {% block title %}Log in!{% endblock %}
 
+{% block navigation %}
+    {# il n'y a rien #}
+{% endblock %}
+
 {% block body %}
     <form method="post">
         {% if error %}
@@ -14,7 +18,7 @@
             </div>
         {% endif %}
 
-        <h1 class="h3 mb-3 font-weight-normal">Se connecter</h1>
+        <h1 class="h3 mb-3 font-weight-normal">Please sign in</h1>
         <label for="username">Email</label>
         <input type="email" value="{{ last_username }}" name="_username" id="username" class="form-control" autocomplete="email" required autofocus>
         <label for="password">Password</label>
