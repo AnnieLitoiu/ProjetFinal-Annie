@@ -33,11 +33,11 @@ class UtilisateurFixtures extends Fixture
             
             $manager->persist($utilisateur);
         }
-        for ($i = 1; $i <= 5; $i++) {
+        for ($i = 1; $i <= 1; $i++) {
             $utilisateur = new Utilisateur();
-            $utilisateur->setEmail("admin" . $i . "@gmail.com");
+            $utilisateur->setEmail("ilinca" . $i . "@gmail.com");
             $utilisateur->setRoles(['ROLE_ADMIN']);
-            $utilisateur->setPassword($this->hasher->hashPassword($utilisateur, "password" . $i));
+            $utilisateur->setPassword($this->hasher->hashPassword($utilisateur, "cucurigu" . $i));
             $manager->persist($utilisateur);
 
             // créer une référence qui sera accéssible depuis partout (toutes les fixtures)

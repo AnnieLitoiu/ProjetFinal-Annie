@@ -17,9 +17,10 @@
                 {# {{ dump (app.user) }} #}
                 <h5>{% if app.user %} 
                         {{ app.user.email }} 
+                        <a href="{{ path('app_logout') }}">Se deconnecter</a>
                     {% endif %}
                 </h5>
-                <a href="{{ path('app_logout') }}">Se deconnecter</a>
+                
             </header>
         {% endblock %}
         
