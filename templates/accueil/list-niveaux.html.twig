@@ -1,0 +1,18 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}List Quiz{% endblock %}
+
+{% block body %}
+
+<h1>List Quiz</h1>
+
+{% for niveau, description in niveaux %}
+<a href ="/quiz/{{ niveau }}"> 
+    {{ description }}
+</a>
+<br>
+
+{% endfor %}
+
+
+{% endblock %}

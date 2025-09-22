@@ -8,20 +8,19 @@ use Symfony\Component\Routing\Attribute\Route;
 
 final class AccueilController extends AbstractController
 {
-    #[Route('/accueil', name: 'app_accueil')]
+    #[Route('/accueil/welcome', name: 'accueil_welcome')]
     public function index(): Response
-    {
-        
-        $adresse = ['rue' => 'Avenue Cicéron',
-                    'numero' => 100,
-                    'codePostal' => '1000'
-        ];
+    { 
+        return $this->render('accueil/index.html.twig');
+    }
 
-        $vars = ['nom' => 'Tommy', // passage de variable simple
-                'hobby' => 'dormir',
-                'dateNaissance' => new \DateTime ("2016-5-16"), // passage d'un objet
-                'adresse' => $adresse
-        ]; 
-        return $this->render('accueil/index.html.twig', $vars);
+    #[Route('/accueil/list-niveaux', name: 'accueil_list_niveaux')]
+    public function listNiveaux(): Response
+    {   
+        $niveaux = ['debutant' => 'Débutant',
+                    'intermediaire' => 'Intermédiaire',
+                    'avance' => 'Avancé'];
+
+        return $this->render('accueil/list-niveaux.html.twig', ['niveaux' => $niveaux]);
     }
 }

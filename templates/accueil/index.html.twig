@@ -3,11 +3,11 @@
 {% block title %}Hello AccueilController!{% endblock %}
 
 {% block body %}
-<h1>Welcome !</h1>
 
-<br>Voici le nom :  {{ nom }} 
-<br>Voici le hobby : {{ hobby }}
-<br>Voici ma date de naissance : {{ dateNaissance.format("Y-m-d") }}
-<br>J'habite : {{ adresse.rue }}, numéro : {{ adresse.numero }}
-<br>Commune : {{ adresse.codePostal }}
+<h1>Bienvenue sur QuizMaster!</h1>
+
+<p>Découvrez une expérience de quiz unique qui vous permettra de tester et d'enrichir vos connaissances dans de nombreux domaines passionnants. </p>
+
+<a href="{{ path('accueil_list_niveaux') }}">Commencer</a>
+
 {% endblock %}
