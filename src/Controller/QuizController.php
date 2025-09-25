@@ -14,7 +14,8 @@ final class QuizController extends AbstractController
     {
 
         // obtenir les quiz du niveau et les envoyer à la vue
-        $niveau = $req->get('niveau');
+        $idNiveau = $req->get('niveau');
+        // dd($idNiveau);
 
         return $this->render('quiz/liste.html.twig');
     }

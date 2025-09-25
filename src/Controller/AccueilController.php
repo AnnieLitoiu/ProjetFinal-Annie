@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Repository\NiveauRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -15,12 +16,11 @@ final class AccueilController extends AbstractController
     }
 
     #[Route('/accueil/list-niveaux', name: 'accueil_list_niveaux')]
-    public function listNiveaux(): Response
+    public function listNiveaux(NiveauRepository $rep): Response
     {   
-        $niveaux = ['debutant' => 'Débutant',
-                    'intermediaire' => 'Intermédiaire',
-                    'avance' => 'Avancé'];
+        $vars = ['niveaux' => $rep->findAll()];
 
-        return $this->render('accueil/list-niveaux.html.twig', ['niveaux' => $niveaux]);
+
+        return $this->render('accueil/list-niveaux.html.twig', $vars);
     }
 }

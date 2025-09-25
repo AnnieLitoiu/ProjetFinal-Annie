@@ -7,9 +7,9 @@
 
 	<h1>List Quiz</h1>
 
-	{% for niveau, description in niveaux %}
-		<a href="{{ path ('app_quiz_liste',{ niveau : niveau }) }}">
-			{{ description }}
+	{% for niveau in niveaux %}
+		<a href="{{ path ('app_quiz_liste',{ niveau : niveau.id }) }}">
+			{{ niveau.nom }}
 		</a>
 		<br>
 

@@ -18,9 +18,6 @@ class Quiz
     #[ORM\Column(length: 255)]
     private ?string $titre = null;
 
-    #[ORM\Column]
-    private ?int $niveau = null;
-
     /**
      * @var Collection<int, Tentative>
      */
@@ -32,6 +29,10 @@ class Quiz
      */
     #[ORM\OneToMany(targetEntity: Question::class, mappedBy: 'quiz')]
     private Collection $questions;
+
+    #[ORM\ManyToOne(inversedBy: 'quizzes')]
+    #[ORM\JoinColumn(nullable: false)]
+    private ?Niveau $niveau = null;
 
     public function __construct()
     {
@@ -56,17 +57,6 @@ class Quiz
         return $this;
     }
 
-    public function getNiveau(): ?int
-    {
-        return $this->niveau;
-    }
-
-    public function setNiveau(int $niveau): static
-    {
-        $this->niveau = $niveau;
-
-        return $this;
-    }
 
     /**
      * @return Collection<int, Tentative>
@@ -124,6 +114,18 @@ class Quiz
                 $question->setQuiz(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getNiveau(): ?Niveau
+    {
+        return $this->niveau;
+    }
+
+    public function setNiveau(?Niveau $niveau): static
+    {
+        $this->niveau = $niveau;
 
         return $this;
     }

@@ -2,12 +2,14 @@
 
 namespace App\DataFixtures;
 
-use App\Entity\Tentative as TentativeEntity;
-use Doctrine\Bundle\FixturesBundle\Fixture;
-use Doctrine\Persistence\ObjectManager;
 use Faker;
+use App\DataFixtures\QuizFixtures;
+use Doctrine\Persistence\ObjectManager;
+use Doctrine\Bundle\FixturesBundle\Fixture;
+use App\Entity\Tentative as TentativeEntity;
+use Doctrine\Common\DataFixtures\DependentFixtureInterface;
 
-class TentativeFixtures extends Fixture
+class TentativeFixtures extends Fixture implements DependentFixtureInterface
 {
     public function load(ObjectManager $manager): void
     {
@@ -32,5 +34,10 @@ class TentativeFixtures extends Fixture
         }
 
         $manager->flush();
+    }
+
+    public function getDependencies(): array
+    {
+        return ([QuizFixtures::class]);
     }
 }
