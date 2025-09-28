@@ -20,7 +20,6 @@ final class AccueilController extends AbstractController
     {   
         $vars = ['niveaux' => $rep->findAll()];
 
-
         return $this->render('accueil/list-niveaux.html.twig', $vars);
     }
 }

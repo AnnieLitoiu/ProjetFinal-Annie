@@ -7,4 +7,11 @@
 
 	{# afficher la liste de quiz en fonction du niveau  #}
 
+	{% for q in quiz %}
+		<a href="">
+			{{ q.titre }}
+			<a><br>
+	{% endfor %}
+
+
 {% endblock %}

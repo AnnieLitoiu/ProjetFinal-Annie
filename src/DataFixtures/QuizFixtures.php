@@ -21,15 +21,17 @@ class QuizFixtures extends Fixture implements DependentFixtureInterface
             'niveau_avance',
         ];
 
-        for ($i = 0; $i < 10; $i++) {
-            $quiz = new Quiz();
-            $quiz->setTitre($faker->sentence);
-            $choixNiveau = $niveauxPossiblesString[rand(0, 2)];
-            $quiz->setNiveau($this->getReference(
-                $choixNiveau,
-                Niveau::class
-            ));
-            $manager->persist($quiz);
+        for ($i = 0; $i < 3; $i++) {
+            for ($j = 0; $j < 20; $j++) {
+                $quiz = new Quiz();
+                $quiz->setTitre($faker->sentence);
+                $choixNiveau = $niveauxPossiblesString[$i];
+                $quiz->setNiveau($this->getReference(
+                    $choixNiveau,
+                    Niveau::class
+                ));
+                $manager->persist($quiz);
+            }
         }
 
         $manager->flush();
@@ -37,7 +39,6 @@ class QuizFixtures extends Fixture implements DependentFixtureInterface
 
     public function getDependencies(): array
     {
-
         return ([NiveauFixtures::class]);
     }
 }
