@@ -1,22 +1,22 @@
 {% extends 'base.html.twig' %}
 
 {% block title %}Détails Quiz
-
 {% endblock %}
 
 
 {% block body %}
 
-    <h1>Détails Quiz</h1>
-
-    {{ quiz.id }}
+    <h2>Niveau : {{ quiz.niveau.nom }}</h2>
     <br>
+    <h2>Titre quiz: {{ quiz.titre }}</h2>
+    <br>
+    {{ form_start(formTentative)}}
+    {{ form_widget(formTentative)}}
 
-    <h1>Titre Quiz</h1>
+    <input type="submit" value="Commencer">
 
-    {{ quiz.titre }}
+    {{ form_end(formTentative)}}
 
-    {{ quiz.niveau.nom }}
 
 
 {% endblock %}

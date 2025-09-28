@@ -1,11 +1,11 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Hello QuizController!
+{% block title %}Liste quizzes
 {% endblock %}
 
 {% block body %}
 
-
+	<h1>Voici les questions pour le niveau choisi. </h1>
 	{% for q in quiz %}
 		<a href="{{ path ('app_details_quiz',{ id : q.id }) }}">
 			{{ q.titre }}
