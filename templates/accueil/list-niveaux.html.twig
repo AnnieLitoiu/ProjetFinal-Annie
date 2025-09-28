@@ -5,7 +5,7 @@
 
 {% block body %}
 
-	<h1>List Quiz</h1>
+	<h1>List Niveaux</h1>
 
 	{% for niveau in niveaux %}
 		<a href="{{ path ('app_quiz_liste',{ niveau : niveau.id }) }}">

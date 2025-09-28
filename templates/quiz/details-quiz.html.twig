@@ -1,0 +1,22 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Détails Quiz
+
+{% endblock %}
+
+
+{% block body %}
+
+    <h1>Détails Quiz</h1>
+
+    {{ quiz.id }}
+    <br>
+
+    <h1>Titre Quiz</h1>
+
+    {{ quiz.titre }}
+
+    {{ quiz.niveau.nom }}
+
+
+{% endblock %}

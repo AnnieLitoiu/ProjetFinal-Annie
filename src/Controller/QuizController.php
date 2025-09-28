@@ -22,4 +22,15 @@ final class QuizController extends AbstractController
 
         return $this->render('quiz/liste.html.twig', $vars);
     }
+
+    #[Route('/quiz/{id}', name: 'app_details_quiz')]
+    public function detailsQuiz(Request $req, QuizRepository $rep): Response
+    {
+        $idQuiz = $req->get('id');
+
+        $vars = ['quiz' => $rep->find($idQuiz)];
+
+        return $this->render('quiz/details-quiz.html.twig', $vars);
+    }
+
 }

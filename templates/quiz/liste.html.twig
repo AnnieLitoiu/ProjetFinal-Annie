@@ -5,12 +5,13 @@
 
 {% block body %}
 
-	{# afficher la liste de quiz en fonction du niveau  #}
 
 	{% for q in quiz %}
-		<a href="">
+		<a href="{{ path ('app_details_quiz',{ id : q.id }) }}">
 			{{ q.titre }}
-			<a><br>
+		</a>
+		<br>
+
 	{% endfor %}
 
 
