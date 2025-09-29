@@ -8,7 +8,7 @@
 
 	{% for quiz in quizzes %}
 		<ul>
-			<li><a href='{{path('app_detail_quiz',{'id':quiz.id})}}'>{{ quiz.titre }}</a></li>
+			<li><a href='{{path('app_start_quiz',{'id':quiz.id})}}'>{{ quiz.titre }}</a></li>
 		</ul>
 	{% endfor %}
 	<br>

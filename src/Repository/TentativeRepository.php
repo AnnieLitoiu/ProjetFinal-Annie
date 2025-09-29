@@ -2,7 +2,9 @@
 
 namespace App\Repository;
 
+use App\Entity\Quiz;
 use App\Entity\Tentative;
+use DateTime;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -40,4 +42,18 @@ class TentativeRepository extends ServiceEntityRepository
     //            ->getOneOrNullResult()
     //        ;
     //    }
+
+    public function saveTentative(Quiz $quiz): Tentative {
+        $tentative = new Tentative();
+        $tentative->setDateDebut(new DateTime('now'));
+        $tentative->setMaxTentatives(PHP_INT_MAX);
+        $tentative->setScore(0);
+        $tentative->setQuiz($quiz);
+        $em = $this->getEntityManager();
+        $em->persist($tentative);
+        $em->flush();
+
+        return $tentative;
+    }
+
 }

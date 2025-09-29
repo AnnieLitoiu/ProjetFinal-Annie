@@ -1,6 +1,15 @@
 {% extends "base.html.twig" %}
 
 {% block body %}
-	{# {{ dump (question)}} #}
+	{% for question in questions %}
+		<ul>
+			<li>
+			<div><strong>{{ question.enonce }}</strong></div>
+			{% for reponse in question.reponses %}
+				<div><input type="radio" name="question-{{ question.id }}"/>{{ reponse.texte }}</div>
+			{% endfor %}
+			</li>
+		</ul>
+	{% endfor %}
 
 {% endblock %}

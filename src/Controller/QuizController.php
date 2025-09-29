@@ -6,6 +6,8 @@ use App\Entity\Tentative;
 use App\Form\TentativeType;
 use App\Repository\NiveauRepository;
 use App\Repository\QuizRepository;
+use App\Repository\TentativeRepository;
+use DateTime;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -43,43 +45,25 @@ final class QuizController extends AbstractController
         ]);
     }
 
-    #[Route('/detail/quiz/{id}', name: 'app_detail_quiz', requirements: ['id' => '\d+'])]
-    public function detailQuiz(Request $req, QuizRepository $rep): Response
-    {
-
-        $idQuiz = $req->get('id');
-        $vars = ['quiz' => $rep->find($idQuiz)];
-
-        dd($vars);
-
-        // return $this->render('quiz/detail_quiz.html.twig', $vars);
-    }
-
-    #[Route('/executer/question/{id}/{numero_question}', name: 'app_quiz_executer', defaults: ['id_question' => null])]
-    public function executerQuestion(Request $req, QuizRepository $rep): Response
+    #[Route('/quiz/{id}/start', name: 'app_start_quiz', requirements: ['id' => '\d+'])]
+    public function startQuiz(Request $req, TentativeRepository $rep, QuizRepository $repQuiz): Response
     {
         $idQuiz = $req->get('id');
-        $numeroQuestion = $req->get('numero_question');
+        $quiz = $repQuiz->find($idQuiz);
+        $tentative = $rep->saveTentative($quiz);
 
-        // obtenir le quiz
-        $quiz = $rep->find($idQuiz);
-
-        // obtenir toutes les questions et reponses
-        $questions = $quiz->getQuestions();
-        
-        $vars = [];
-
-        // a chaque tour il faut envoyer la question suivante
-        if (is_null($numeroQuestion)){
-            $vars = [
-                'question' => $questions[0],
-                'numeroQuestion' => 0
-            ];
-        }
-
-        return $this->render ("quiz_executer_question.html.twig", $vars);
+        return $this->redirectToRoute('app_quiz_jouer',['id' => $tentative->getId()]);
     }
 
+    #[Route('/quiz/tentative/{id}', name: 'app_quiz_jouer')]
+    public function executerQuestion(Request $req, TentativeRepository $rep): Response
+    {
+        $idTentative = $req->get('id');
+        $tentative = $rep->find($idTentative);
+        $questions = $tentative->getQuiz()->getQuestions();   
+        $vars = ['questions' => $questions];
 
+        return $this->render ("quiz/quiz_executer_question.html.twig", $vars);
+    }
 }
 

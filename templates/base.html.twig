@@ -67,7 +67,7 @@
         <nav class="navbar navbar-custom px-3 py-2">
             <div class="container-fluid d-flex justify-content-end">
                 {# Affiche uniquement si la route actuelle est celle de la liste des quiz #}
-                {% if app.request.attributes.get('_route') == 'app_quiz_liste' %}
+                {% if app.request.attributes.get('_route') == 'app_quiz_liste' or app.request.attributes.get('_route') == 'app_quiz_jouer' %}
                     <a href="{{ path('accueil_list_niveaux') }}" class="btn btn-outline-turquoise btn-sm">
                         Changer de niveau
                     </a>
