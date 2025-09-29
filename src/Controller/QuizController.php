@@ -42,30 +42,37 @@ final class QuizController extends AbstractController
         ]);
     }
 
-    #[Route('/quiz/{id}', name: 'app_details_quiz')]
+    #[Route('/quiz/{id}', name: 'app_details_quiz', requirements: ['id' => '\d+'])]
     public function detailsQuiz(Request $req, QuizRepository $rep): Response
     {
         $idQuiz = $req->get('id');
         
-        $tentative = new Tentative();
-        $formTentative = $this->createForm(
-            TentativeType::class,
-            $tentative,
-            array(
-                'action' => $this->generateURL ("quiz_tentative_commencer"),
-                'method' => 'POST',
-                'quiz_id' => $idQuiz
-            )
-        );
-        $vars = ['quiz' => $rep->find($idQuiz), 'formTentative' => $formTentative->createView()];
+        $vars = ['quiz' => $rep->find($idQuiz)];
 
         return $this->render('quiz/details-quiz.html.twig', $vars);
     }
 
-    #[Route('/tentative/commencer', name: 'quiz_tentative_commencer')]
-    public function insertTentative(): Response
+    #[Route('/quiz/executer/{id}/{id_question}', name: 'app_quiz_executer', defaults: ['id_question' => null])]
+    public function executer(Request $req, QuizRepository $rep): Response
     {
-        $vars = [];
-        return $this->render('quiz/tentative-commencer.html.twig', $vars);
-    }                                                                                                                                       
+        $idQuiz = $req->get('id');
+        // obtenir le quiz
+        $quiz = $rep->find($idQuiz);
+
+        // obtenir toutes les questions et reponses
+        $questions = $quiz->getQuestions();
+        dd($questions[0]);
+
+        // a chaque tour il faut envoyer la question suivante
+
+        // si id_question es null, on doit envoyer la premiere question
+
+
+
+
+        return new Response ("hjoazerar");
+    }
+
+
 }
+

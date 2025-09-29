@@ -19,7 +19,7 @@ class QuestionFixtures extends Fixture
        for ($i =0; $i < 100; $i++){
         $question = new Question();
         $question->setEnonce($faker->sentence);
-        $question->setQuiz($faker->randomElement($quiz));
+        $question->setQuiz($this->setReference("question" . $i, $question));
         $manager->persist($question);
        }
 

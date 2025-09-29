@@ -3,7 +3,7 @@
 namespace App\DataFixtures;
 
 use Faker;
-use App\DataFixtures\QuizFixtures;
+use App\DataFixtures\QuizQuestionsFixtures;
 use Doctrine\Persistence\ObjectManager;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use App\Entity\Tentative as TentativeEntity;
@@ -36,6 +36,6 @@ class TentativeFixtures extends Fixture implements DependentFixtureInterface
 
     public function getDependencies(): array
     {
-        return ([QuizFixtures::class]);
+        return ([QuizQuestionsFixtures::class]);
     }
 }
