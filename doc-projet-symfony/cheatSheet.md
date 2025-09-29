@@ -126,3 +126,5 @@ symfony console doctrine:fixtures:load --no-interaction
 .\databaseRestart.bat
 
 ```
+
+composer require knplabs/knp-paginator-bundle //pour pagination

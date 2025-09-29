@@ -10,19 +10,36 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use Knp\Component\Pager\PaginatorInterface;
 
 final class QuizController extends AbstractController
 {
     #[Route('/quiz/liste/{niveau}', name: 'app_quiz_liste')]
-    public function quizListe(Request $req, QuizRepository $rep, NiveauRepository $repNiveau): Response
-    {
+    public function quizListe(
+        Request $req,
+        QuizRepository $rep,
+        NiveauRepository $repNiveau,
+        PaginatorInterface $paginator
+    ): Response {
         $idNiveau = $req->get('niveau');
-
-        $vars = ['quiz' => $repNiveau->find($idNiveau)->getQuizzes()];
-
-        // $vars = ['quiz' => $rep->findBy(['niveau' => $idNiveau])];
-
-        return $this->render('quiz/liste.html.twig', $vars);
+    
+        // Requête Doctrine via le repository
+        $query = $rep->createQueryBuilder('q')
+            ->where('q.niveau = :niveau')
+            ->setParameter('niveau', $idNiveau)
+            ->getQuery();
+    
+        // Paginer la requête
+        $pagination = $paginator->paginate(
+            $query,
+            $req->query->getInt('page', 1), 
+            5
+        );
+    
+        return $this->render('quiz/liste.html.twig', [
+            'quiz' => $pagination,
+            'niveau' => $repNiveau->find($idNiveau), 
+        ]);
     }
 
     #[Route('/quiz/{id}', name: 'app_details_quiz')]
