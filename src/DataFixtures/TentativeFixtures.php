@@ -36,6 +36,6 @@ class TentativeFixtures extends Fixture implements DependentFixtureInterface
 
     public function getDependencies(): array
     {
-        return ([QuizQuestionsFixtures::class]);
+        return ([QuizQuestionsReponsesFixtures::class]);
     }
 }
