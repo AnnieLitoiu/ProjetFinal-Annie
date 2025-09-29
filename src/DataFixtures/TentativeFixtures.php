@@ -13,12 +13,10 @@ class TentativeFixtures extends Fixture implements DependentFixtureInterface
 {
     public function load(ObjectManager $manager): void
     {
-        $faker = Faker\Factory::create('ro_RO');
+        $faker = Faker\Factory::create('fr_FR');
 
-        // Get all available quizzes
         $quizzes = $manager->getRepository(\App\Entity\Quiz::class)->findAll();
 
-        // If no quizzes exist, you might want to create some first
         if (empty($quizzes)) {
             throw new \RuntimeException('No quizzes found. Please load Quiz fixtures first.');
         }

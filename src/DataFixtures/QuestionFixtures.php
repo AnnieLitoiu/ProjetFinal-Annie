@@ -12,7 +12,7 @@ class QuestionFixtures extends Fixture
 {
     public function load(ObjectManager $manager): void
     {
-       $faker = Faker\Factory::create('ro_RO');
+       $faker = Faker\Factory::create('fr_FR');
        $repository = $manager->getRepository(Quiz::class);
        $quiz = $repository->findAll();
 
