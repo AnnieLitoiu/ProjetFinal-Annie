@@ -1,21 +1,18 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Liste des quiz{% endblock %}
+{% block title %}Liste des quiz
+{% endblock %}
 
 {% block body %}
-    <h1>Voici les quiz pour le niveau choisi.</h1>
+	<h1>Voici les quiz pour le niveau choisi.</h1>
 
-    {% for q in quiz %}
-	<ul>
-		<li>
-        <a href="{{ path('app_details_quiz', { id: q.id }) }}">
-        	{{ q.titre }}
-        </a>
-		</li>
-    </ul>
-    {% endfor %}
+	{% for quiz in quizzes %}
+		<ul>
+			<li><a href='{{path('app_detail_quiz',{'id':quiz.id})}}'>{{ quiz.titre }}</a></li>
+		</ul>
+	{% endfor %}
 	<br>
-    <div class="navigation">
-        {{ knp_pagination_render(quiz, '@KnpPaginator/Pagination/bootstrap_v5_pagination.html.twig') }}
-    </div>
+	<div class="navigation">
+		{{ knp_pagination_render(quizzes, '@KnpPaginator/Pagination/bootstrap_v5_pagination.html.twig') }}
+	</div>
 {% endblock %}

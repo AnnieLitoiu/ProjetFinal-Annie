@@ -21,15 +21,16 @@ final class QuizController extends AbstractController
         NiveauRepository $repNiveau,
         PaginatorInterface $paginator
     ): Response {
+
         $idNiveau = $req->get('niveau');
-    
-    
+        
+        
         // Requête Doctrine DQL via le repository
         $query = $rep->createQueryBuilder('q')
-            ->where('q.niveau = :niveau')
-            ->setParameter('niveau', $idNiveau)
-            ->getQuery();
-
+        ->where('q.niveau = :niveau')
+        ->setParameter('niveau', $idNiveau)
+        ->getQuery();
+        
         // Paginer la requête
         $pagination = $paginator->paginate(
             $query,
@@ -37,40 +38,46 @@ final class QuizController extends AbstractController
         );
     
         return $this->render('quiz/liste.html.twig', [
-            'quiz' => $pagination,
+            'quizzes' => $pagination,
             'niveau' => $repNiveau->find($idNiveau), 
         ]);
     }
 
-    #[Route('/quiz/{id}', name: 'app_details_quiz', requirements: ['id' => '\d+'])]
-    public function detailsQuiz(Request $req, QuizRepository $rep): Response
+    #[Route('/detail/quiz/{id}', name: 'app_detail_quiz', requirements: ['id' => '\d+'])]
+    public function detailQuiz(Request $req, QuizRepository $rep): Response
     {
+
         $idQuiz = $req->get('id');
-        
         $vars = ['quiz' => $rep->find($idQuiz)];
 
-        return $this->render('quiz/details-quiz.html.twig', $vars);
+        dd($vars);
+
+        // return $this->render('quiz/detail_quiz.html.twig', $vars);
     }
 
-    #[Route('/quiz/executer/{id}/{id_question}', name: 'app_quiz_executer', defaults: ['id_question' => null])]
-    public function executer(Request $req, QuizRepository $rep): Response
+    #[Route('/executer/question/{id}/{numero_question}', name: 'app_quiz_executer', defaults: ['id_question' => null])]
+    public function executerQuestion(Request $req, QuizRepository $rep): Response
     {
         $idQuiz = $req->get('id');
+        $numeroQuestion = $req->get('numero_question');
+
         // obtenir le quiz
         $quiz = $rep->find($idQuiz);
 
         // obtenir toutes les questions et reponses
         $questions = $quiz->getQuestions();
-        dd($questions[0]);
+        
+        $vars = [];
 
         // a chaque tour il faut envoyer la question suivante
+        if (is_null($numeroQuestion)){
+            $vars = [
+                'question' => $questions[0],
+                'numeroQuestion' => 0
+            ];
+        }
 
-        // si id_question es null, on doit envoyer la premiere question
-
-
-
-
-        return new Response ("hjoazerar");
+        return $this->render ("quiz_executer_question.html.twig", $vars);
     }
 
 
