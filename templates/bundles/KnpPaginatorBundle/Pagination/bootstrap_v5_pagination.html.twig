@@ -7,7 +7,7 @@
             {# Lien vers la page précédente #}
             {% if previous is defined %}
                 <li class="page-item">
-                    <a class="page-link" href="{{ path(route, query|merge({(pageParameterName): previous})) }}" aria-label="Page précédente">
+                    <a class="page-link btn btn-outline-turquoise" href="{{ path(route, query|merge({(pageParameterName): previous})) }}" aria-label="Page précédente">
                         <span aria-hidden="true">⬅ Précédent</span>
                     </a>
                 </li>
@@ -33,7 +33,7 @@
             {# Lien vers la page suivante #}
             {% if next is defined %}
                 <li class="page-item">
-                    <a class="page-link" href="{{ path(route, query|merge({(pageParameterName): next})) }}" aria-label="Page suivante">
+                    <a class="page-link btn btn-outline-turquoise" href="{{ path(route, query|merge({(pageParameterName): next})) }}" aria-label="Page suivante">
                         <span aria-hidden="true">Suivant ➡</span>
                     </a>
                 </li>

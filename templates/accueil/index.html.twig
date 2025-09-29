@@ -3,11 +3,18 @@
 {% block title %}Hello AccueilController!{% endblock %}
 
 {% block body %}
+    <div class="text-center mt-5">
+        <h1>Bienvenue sur QuizMaster!</h1>
 
-<h1>Bienvenue sur QuizMaster!</h1>
+        <h3 class="mt-3">Teste ton cerveau,🧠  explore des univers,🌍 progresse chaque jour. 🚀</h3>
 
-<p><h3>Teste ton cerveau, explore des univers, progresse chaque jour. </p>
-
-<a href="{{ path('accueil_list_niveaux') }}">Commencer</a>
-
+        <a href="{{ path('accueil_list_niveaux') }}" class="btn btn-outline-turquoise btn-lg mt-4">
+            Commencer
+        </a>
+    </div>
+    <div class="col-md-6 text-center mt-4 mt-md-0">
+            <img src="{{ asset('assets/quiz-show.svg') }}" alt="Illustration quiz" class="img-fluid" style="max-height: 300px;">
+        </div>
+    </div>
+    </div>
 {% endblock %}

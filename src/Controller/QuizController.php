@@ -22,14 +22,12 @@ final class QuizController extends AbstractController
         PaginatorInterface $paginator
     ): Response {
         $idNiveau = $req->get('niveau');
-    
-        // Requête Doctrine via le repository
+       
         $query = $rep->createQueryBuilder('q')
             ->where('q.niveau = :niveau')
             ->setParameter('niveau', $idNiveau)
             ->getQuery();
     
-        // Paginer la requête
         $pagination = $paginator->paginate(
             $query,
             $req->query->getInt('page', 1), 
@@ -46,8 +44,7 @@ final class QuizController extends AbstractController
     public function detailsQuiz(Request $req, QuizRepository $rep): Response
     {
         $idQuiz = $req->get('id');
-
-        
+       
         $tentative = new Tentative();
         $formTentative = $this->createForm(
             TentativeType::class,

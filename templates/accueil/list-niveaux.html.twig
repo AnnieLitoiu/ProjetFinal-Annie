@@ -5,15 +5,16 @@
 
 {% block body %}
 
-	<h1>Explorer les niveaux</h1><br>
+	<h1>Choisissez un niveau</h1>
 
-	{% for niveau in niveaux %}
-		<a href="{{ path ('app_quiz_liste',{ niveau : niveau.id }) }}">
-			{{ niveau.nom }}
-		</a>
-		<br>
-
-	{% endfor %} 
-
+	<ul>
+		{% for niveau in niveaux %}
+			<li>
+				<a href="{{ path ('app_quiz_liste',{ niveau : niveau.id }) }}"class="btn btn-turquoise mt-3">
+					{{ niveau.nom }}
+				</a>
+			</li>
+		{% endfor %} 
+	</ul>
 
 {% endblock %}

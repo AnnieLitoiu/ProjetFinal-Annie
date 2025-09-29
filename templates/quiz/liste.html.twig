@@ -6,12 +6,15 @@
     <h1>Voici les quiz pour le niveau choisi.</h1>
 
     {% for q in quiz %}
+	<ul>
+		<li>
         <a href="{{ path('app_details_quiz', { id: q.id }) }}">
-            {{ q.titre }}
+        	{{ q.titre }}
         </a>
-        <br>
+		</li>
+    </ul>
     {% endfor %}
-    <br>
+	<br>
     <div class="navigation">
         {{ knp_pagination_render(quiz, '@KnpPaginator/Pagination/bootstrap_v5_pagination.html.twig') }}
     </div>
