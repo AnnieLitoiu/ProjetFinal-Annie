@@ -128,3 +128,9 @@ symfony console doctrine:fixtures:load --no-interaction
 ```
 
 composer require knplabs/knp-paginator-bundle //pour pagination
+
+
+Debug dans twig
+<pre>
+    {{ dump(user) }}
+</pre>

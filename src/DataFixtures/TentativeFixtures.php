@@ -8,6 +8,7 @@ use Doctrine\Persistence\ObjectManager;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use App\Entity\Tentative as TentativeEntity;
 use Doctrine\Common\DataFixtures\DependentFixtureInterface;
+use App\Repository\TentativeRepository;
 
 class TentativeFixtures extends Fixture implements DependentFixtureInterface
 {
@@ -21,9 +22,9 @@ class TentativeFixtures extends Fixture implements DependentFixtureInterface
             throw new \RuntimeException('No quizzes found. Please load Quiz fixtures first.');
         }
 
-        for ($i = 0; $i < 50; $i++) {
+        for ($i = 0; $i < 10; $i++) {
             $tentative = new TentativeEntity();
-            $tentative->setMaxTentatives($faker->randomDigit);
+            $tentative->setMaxTentatives(TentativeRepository::MAX_TENTATIVES);
             $tentative->setDateDebut($faker->dateTime);
             $tentative->setDateFin($faker->dateTime);
             $tentative->setScore($faker->randomDigit);

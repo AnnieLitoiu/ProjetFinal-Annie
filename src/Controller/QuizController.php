@@ -2,12 +2,10 @@
 
 namespace App\Controller;
 
-use App\Entity\Tentative;
-use App\Form\TentativeType;
+use App\Form\ReponseType;
 use App\Repository\NiveauRepository;
 use App\Repository\QuizRepository;
 use App\Repository\TentativeRepository;
-use DateTime;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -17,15 +15,9 @@ use Knp\Component\Pager\PaginatorInterface;
 final class QuizController extends AbstractController
 {
     #[Route('/quiz/liste/{niveau}', name: 'app_quiz_liste')]
-    public function quizListe(
-        Request $req,
-        QuizRepository $rep,
-        NiveauRepository $repNiveau,
-        PaginatorInterface $paginator
-    ): Response {
-
+    public function quizListe(Request $req, QuizRepository $rep, NiveauRepository $repNiveau, PaginatorInterface $paginator): Response 
+    {
         $idNiveau = $req->get('niveau');
-        
         
         // Requête Doctrine DQL via le repository
         $query = $rep->createQueryBuilder('q')
@@ -36,7 +28,8 @@ final class QuizController extends AbstractController
         // Paginer la requête
         $pagination = $paginator->paginate(
             $query,
-            $req->query->getInt('page', 1), 5
+            $req->query->getInt('page', 1),
+            5
         );
     
         return $this->render('quiz/liste.html.twig', [
@@ -55,13 +48,28 @@ final class QuizController extends AbstractController
         return $this->redirectToRoute('app_quiz_jouer',['id' => $tentative->getId()]);
     }
 
-    #[Route('/quiz/tentative/{id}', name: 'app_quiz_jouer')]
-    public function executerQuestion(Request $req, TentativeRepository $rep): Response
+    #[Route('/quiz/jouer/{id}', name: 'app_quiz_jouer')]
+    public function executerQuestion(Request $req, TentativeRepository $rep, PaginatorInterface $paginator): Response
     {
         $idTentative = $req->get('id');
         $tentative = $rep->find($idTentative);
-        $questions = $tentative->getQuiz()->getQuestions();   
-        $vars = ['questions' => $questions];
+        $questions = $tentative->getQuiz()->getQuestions();
+        $page = $req->query->getInt('page', 1);
+        $pagination = $paginator->paginate(
+            $questions,
+            $page,
+            1
+        );
+        $formReponse = $this->createForm(ReponseType::class, null, ['question' => $questions[$page - 1]]);
+        $formReponse->handleRequest($req);
+
+        if ($formReponse->isSubmitted()) {
+
+           
+
+            
+        }
+        $vars = ['questions' => $pagination, 'formReponse' => $formReponse, 'questionNumber' => $page];
 
         return $this->render ("quiz/quiz_executer_question.html.twig", $vars);
     }

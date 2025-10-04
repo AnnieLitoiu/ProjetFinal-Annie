@@ -13,6 +13,8 @@ use Doctrine\Persistence\ManagerRegistry;
  */
 class TentativeRepository extends ServiceEntityRepository
 {
+    public const MAX_TENTATIVES = 1;
+    
     public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry, Tentative::class);
@@ -46,7 +48,7 @@ class TentativeRepository extends ServiceEntityRepository
     public function saveTentative(Quiz $quiz): Tentative {
         $tentative = new Tentative();
         $tentative->setDateDebut(new DateTime('now'));
-        $tentative->setMaxTentatives(PHP_INT_MAX);
+        $tentative->setMaxTentatives(self::MAX_TENTATIVES);
         $tentative->setScore(0);
         $tentative->setQuiz($quiz);
         $em = $this->getEntityManager();

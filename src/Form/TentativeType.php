@@ -2,7 +2,6 @@
 
 namespace App\Form;
 
-use App\Entity\Quiz;
 use App\Entity\Tentative;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\HiddenType;

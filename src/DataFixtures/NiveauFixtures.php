@@ -20,7 +20,7 @@ class NiveauFixtures extends Fixture
         $manager->persist($niveau);
 
         $niveau = new Niveau();
-        $niveau->setNom("Intermediare");
+        $niveau->setNom("Intermédiare");
         $niveau->setDescription("description intermediaire");
         $this->addReference("niveau_intermediaire", $niveau);
         $manager->persist($niveau);

@@ -17,8 +17,8 @@ class QuizQuestionsReponsesFixtures extends Fixture implements DependentFixtureI
     {
         $faker = Faker\Factory::create('fr_FR');
 
-        // Pools de questions par niveau : [enoncé, [rép1, rép2, rép3], indexBonneRéponse]
-        $pools = [
+        // Series de questions par niveau : [enoncé, [rép1, rép2, rép3], indexBonneRéponse]
+        $questionsParNiveau = [            
             'debutant' => [
                 ["Quelle balise HTML sert à créer un lien hypertexte ?", ["<a>", "<link>", "<href>"], 0],
                 ["Quelle commande affiche une chaîne en PHP ?", ["echo", "print_r()", "console.log()"], 0],
@@ -137,7 +137,7 @@ class QuizQuestionsReponsesFixtures extends Fixture implements DependentFixtureI
                 $quiz->setNiveau($niveau);
 
                 // tirer 15 questions du pool du niveau (sans répétition si possible)
-                $pool = $pools[$slug];
+                $pool = $questionsParNiveau[$slug];
                 // mélanger pour varier entre les 15 quiz
                 shuffle($pool);
                 $selected = array_slice($pool, 0, 15);

@@ -9,7 +9,7 @@ Une tentative correspond à un seul quiz.
 
 Un quiz peut être tenté par plusieurs candidats.
 
-Un quiz appartient à une catégorie.
+Un quiz appartient à un niveau.
 
 Une catégorie peut contenir plusieurs quiz.
 
