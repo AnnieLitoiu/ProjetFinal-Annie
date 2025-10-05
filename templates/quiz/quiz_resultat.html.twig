@@ -1,13 +1,15 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Reponse finale
-{% endblock %}
+{% block title %}Résultats du quiz{% endblock %}
 
 {% block body %}
+  <h3>Résultats</h3>
+  <p>
+    Bonnes réponses : <strong>{{ reponses_correctes }}</strong> / {{ total_questions }}<br>
+    Mauvaises réponses : <strong>{{ reponses_mauvaises }}</strong><br>
+    Non répondues : <strong>{{ non_repondues }}</strong><br>
+    Score : <strong>{{ pourcentage }}%</strong>
+  </p>
 
-
-
-
-
-
+  <a class="btn btn-outline-turquoise btn-sm" href="{{ path('accueil_welcome') }}">Home</a>
 {% endblock %}

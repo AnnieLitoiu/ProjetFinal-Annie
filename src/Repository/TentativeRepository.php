@@ -58,4 +58,13 @@ class TentativeRepository extends ServiceEntityRepository
         return $tentative;
     }
 
+    public function finirTentative(int $score, Tentative $tentative): Tentative {
+        $tentative->setDateFin(new DateTime('now'));
+        $tentative->setScore($score);
+        $em = $this->getEntityManager();
+        $em->persist($tentative);
+        $em->flush();
+
+        return $tentative;
+    }
 }

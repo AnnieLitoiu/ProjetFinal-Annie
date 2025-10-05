@@ -40,7 +40,7 @@
   {# Si on est sur la dernière page, afficher un bouton pour terminer le quiz #}
   {% if estDernierrePage %}
     <div class="mt-4">
-      <a href='{{path('app_quiz_terminer',{'id':tentative.id})}}' class="btn btn-outline-turquoise btn-sm">Finir le quiz</a>
+      <a href='{{path('app_quiz_terminer',{'id':tentative.id})}}' class="btn btn-outline-turquoise btn-sm">Soumettre le quiz</a>
     </div>
   {% endif %}
   

@@ -84,13 +84,11 @@ final class QuizController extends AbstractController
         $estDernierrePage = $indexQuestion == count($questions) - 1 ?? false;
 
         // Création du formulaire de réponse pour la question courante
-        // (le FormType attend l'option 'question' pour construire les choix)
         $formReponse = $this->createForm(ReponseType::class, null, ['question' => $questionCourante]);
         $formReponse->handleRequest($req);
 
         // Traitement du POST : enregistre la réponse choisie dans la session
         if ($formReponse->isSubmitted() && $formReponse->isValid()) {
-            // Entité Reponse choisie par l'utilisateur
             $reponseChoisie = $formReponse->get('reponse')->getData();
 
             // Lecture/écriture des réponses en session, clés isolées par tentative
@@ -129,19 +127,34 @@ final class QuizController extends AbstractController
 
         // Comptage du total de questions (pour calcul de score)
         $totalquestions = count($tentative->getQuiz()->getQuestions());
-
-        // Compteur de bonnes réponses (incrémenté dans la boucle)
+        $totalQuestionsQuiz = 15;
         $reponsesCorrectes = 0;
 
         // Parcourt des réponses enregistrées pour calculer le score
         foreach($reponses as $reponse){
-            if ($reponse['est_correcte']){
-                // Incrémenter ici si besoin (ex: $reponsesCorrectes++;)
+            if (!empty($reponse['est_correcte'])){
+                $reponsesCorrectes++;
             }
         }
+        // Calcul du pourcentage 
+        $diviseur = max(1, $totalQuestionsQuiz);
+        $pourcentage = round(($reponsesCorrectes / $diviseur) * 100, 2);
 
-        // Variables à passer au template de résultat (à compléter selon les besoins)
-        $vars = [];
+        // Nombre de réponses données / non répondues
+        $reponsesDonnees = count($reponses);
+        $reponsesMauvaises = max(0, $reponsesDonnees - $reponsesCorrectes);
+        $nonRepondues = max(0, $totalQuestionsQuiz - $reponsesDonnees);
+        $rep->finirTentative($reponsesCorrectes, $tentative);
+        $vars = [
+            'tentative'           => $tentative,
+            'reponses_correctes'  => $reponsesCorrectes, 
+            'reponses_mauvaises'  => $reponsesMauvaises,      
+            'total_questions'     => $totalquestions,             
+            'pourcentage'         => $pourcentage,               
+            'reponses_donnees'    => $reponsesDonnees,
+            'non_repondues'       => $nonRepondues,
+        ];
+    
         
         return $this->render ("quiz/quiz_resultat.html.twig", $vars);
     }
