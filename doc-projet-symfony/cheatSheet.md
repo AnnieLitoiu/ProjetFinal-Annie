@@ -132,5 +132,8 @@ composer require knplabs/knp-paginator-bundle //pour pagination
 
 Debug dans twig
 <pre>
-    {{ dump(user) }}
+    {{ dump(variable) }}
 </pre>
+
+Debug dans php
+dd($variable);

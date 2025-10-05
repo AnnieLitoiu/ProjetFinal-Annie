@@ -22,6 +22,7 @@ class ReponseType extends AbstractType
                 'choice_label' => fn(Reponse $reponse) => $reponse->getTexte(),
                 'expanded' => true,
                 'multiple' => false,
+                'mapped'   => false, 
                 'attr' => ['class' => 'choice-item'],
                 'row_attr' => ['class' => 'choice-group']
             ])
@@ -32,7 +33,6 @@ class ReponseType extends AbstractType
     {
         $resolver->setRequired('question');
         $resolver->setDefaults([
-            'data_class' => Question::class,
             'question' => null,
         ]);
         $resolver->setAllowedTypes('question', Question::class);

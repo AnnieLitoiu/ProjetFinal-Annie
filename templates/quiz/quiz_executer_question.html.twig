@@ -3,27 +3,50 @@
 {% block title %}Questions
 {% endblock %}
 
-
 {% block body %}
 
 <div class="questions">
+  {# On parcourt les questions de la pagination (ici 1 question/page) #}
   {% for question in questions %}
     <h5 class="mb-3">
+      {# Affiche le numéro de la question (calculé côté contrôleur) et l'énoncé #}
       Question {{ questionNumber }} — {{ question.enonce }}
     </h5>
+
+    {# Formulaire de réponse pour la question courante #}
     {{ form_start(formReponse) }}
+      {# Affiche les erreurs globales du formulaire s'il y en a #}
       {{ form_errors(formReponse) }}
+
+      {# Rend chaque option (radio) une par une pour maîtriser le markup Bootstrap #}
       {% for child in formReponse.reponse %}
         <div class="form-check mb-2">
+          {# Bouton radio (input) #}
           {{ form_widget(child, { attr: { class: 'form-check-input' } }) }}
+          {# Label associé au radio #}
           {{ form_label(child, null, { label_attr: { class: 'form-check-label ms-2 mb-0' } }) }}
+          {# Erreur spécifique à cette option si nécessaire #}
           {{ form_errors(child) }}
         </div>
       {% endfor %}
+
+      {# Bouton pour valider la réponse de la question courante #}
+      <div class="mt-4">
+        <input class="btn btn-outline-turquoise btn-sm" type="submit" value="Valider la réponse">
+      </div>
     {{ form_end(formReponse) }}
   {% endfor %}
   
+  {# Si on est sur la dernière page, afficher un bouton pour terminer le quiz #}
+  {% if estDernierrePage %}
+    <div class="mt-4">
+      <a href='{{path('app_quiz_terminer',{'id':tentative.id})}}' class="btn btn-outline-turquoise btn-sm">Finir le quiz</a>
+    </div>
+  {% endif %}
+  
 </div>
+
+{# Bloc de pagination (précédent/suivant) sans les numéros, rendu via le template KnpPaginator #}
 <div class="navigation mt-4">
   {{ knp_pagination_render(
     questions,
