@@ -3,7 +3,6 @@
 namespace App\DataFixtures;
 
 use Faker;
-use App\DataFixtures\QuizQuestionsFixtures;
 use Doctrine\Persistence\ObjectManager;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use App\Entity\Tentative as TentativeEntity;
@@ -27,8 +26,14 @@ class TentativeFixtures extends Fixture implements DependentFixtureInterface
             $tentative->setMaxTentatives(TentativeRepository::MAX_TENTATIVES);
             $tentative->setDateDebut($faker->dateTime);
             $tentative->setDateFin($faker->dateTime);
-            $tentative->setScore($faker->randomDigit);
             $tentative->setQuiz($faker->randomElement($quizzes));
+            $tentative->setReponsesCorrectes($faker->randomDigit);
+            $tentative->setReponsesMauvaises($faker->randomDigit);
+            $tentative->setReponsesDonnees($faker->randomDigit);
+            $tentative->setNonRepondues($faker->randomDigit);
+            $tentative->setPourcentage($faker->randomDigit);
+            $tentative->setReponsesUtilisateur([$faker->randomDigit()]);
+            
             $manager->persist($tentative);
         }
 

@@ -3,6 +3,7 @@
 namespace App\Entity;
 
 use App\Repository\TentativeRepository;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: TentativeRepository::class)]
@@ -22,12 +23,27 @@ class Tentative
     #[ORM\Column(nullable: true)]
     private ?\DateTime $dateFin = null;
 
-    #[ORM\Column(nullable: true)]
-    private ?int $score = null;
-
     #[ORM\ManyToOne(inversedBy: 'tentatives')]
     #[ORM\JoinColumn(nullable: false)]
     private ?Quiz $quiz = null;
+
+    #[ORM\Column(nullable: true)]
+    private ?int $reponsesCorrectes = null;
+
+    #[ORM\Column(nullable: true)]
+    private ?int $reponsesMauvaises = null;
+
+    #[ORM\Column(nullable: true)]
+    private ?int $reponsesDonnees = null;
+
+    #[ORM\Column(nullable: true)]
+    private ?int $nonRepondues = null;
+
+    #[ORM\Column(type: Types::DECIMAL, precision: 10, scale: 0, nullable: true)]
+    private ?string $pourcentage = null;
+
+    #[ORM\Column(nullable: true)]
+    private ?array $reponsesUtilisateur = null;
 
     public function getId(): ?int
     {
@@ -70,18 +86,6 @@ class Tentative
         return $this;
     }
 
-    public function getScore(): ?int
-    {
-        return $this->score;
-    }
-
-    public function setScore(?int $score): static
-    {
-        $this->score = $score;
-
-        return $this;
-    }
-
     public function getQuiz(): ?Quiz
     {
         return $this->quiz;
@@ -93,4 +97,90 @@ class Tentative
 
         return $this;
     }
+
+    public function getReponsesCorrectes(): ?int
+    {
+        return $this->reponsesCorrectes;
+    }
+
+    public function setReponsesCorrectes(?int $reponsesCorrectes): static
+    {
+        $this->reponsesCorrectes = $reponsesCorrectes;
+
+        return $this;
+    }
+
+    public function getReponsesMauvaises(): ?int
+    {
+        return $this->reponsesMauvaises;
+    }
+
+    public function setReponsesMauvaises(?int $reponsesMauvaises): static
+    {
+        $this->reponsesMauvaises = $reponsesMauvaises;
+
+        return $this;
+    }
+
+    public function getReponsesDonnees(): ?int
+    {
+        return $this->reponsesDonnees;
+    }
+
+    public function setReponsesDonnees(?int $reponsesDonnees): static
+    {
+        $this->reponsesDonnees = $reponsesDonnees;
+
+        return $this;
+    }
+
+    public function getNonRepondues(): ?int
+    {
+        return $this->nonRepondues;
+    }
+
+    public function setNonRepondues(?int $nonRepondues): static
+    {
+        $this->nonRepondues = $nonRepondues;
+
+        return $this;
+    }
+
+    public function getPourcentage(): ?string
+    {
+        return $this->pourcentage;
+    }
+
+    public function setPourcentage(?string $pourcentage): static
+    {
+        $this->pourcentage = $pourcentage;
+
+        return $this;
+    }
+
+    public function getReponsesUtilisateur(): ?array
+    {
+        return $this->reponsesUtilisateur;
+    }
+
+    public function setReponsesUtilisateur(?array $reponsesUtilisateur): static
+    {
+        $this->reponsesUtilisateur = $reponsesUtilisateur;
+
+        return $this;
+    }
+
+    public function formatDuration(): ?array
+    {
+        $seconds = max(0, $this->getDateFin()->getTimestamp() - $this->getDateDebut()->getTimestamp());
+        $h = intdiv($seconds, 3600);
+        $m = intdiv($seconds % 3600, 60);
+        $s = $seconds % 60;
+
+        // 00:12 si < 1h, sinon 1:02:33
+        $label = $h > 0 ? sprintf('%d:%02d:%02d', $h, $m, $s) : sprintf('%02d:%02d', $m, $s);
+
+        return ['seconds' => $seconds, 'label' => $label];
+    }
+
 }

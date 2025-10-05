@@ -12,7 +12,6 @@ class NiveauFixtures extends Fixture
 {
     public function load(ObjectManager $manager): void
     {
-
         $niveau = new Niveau();
         $niveau->setNom("Débutant");
         $niveau->setDescription("description debutant");
@@ -30,7 +29,6 @@ class NiveauFixtures extends Fixture
         $niveau->setDescription("description avance");
         $this->addReference("niveau_avance", $niveau);
         $manager->persist($niveau);
-
 
         $manager->flush();
     }

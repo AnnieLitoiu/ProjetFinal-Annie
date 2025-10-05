@@ -95,26 +95,26 @@ final class QuizController extends AbstractController
             $session = $req->getSession();
             $reponses = $session->get('quiz_reponses' . $idTentative, []);
             $reponses[$indexQuestion] = [
-                'id_question' => $questionCourante->getId(),      // pour rattacher la réponse à la question
-                'id_reponse_choisie' => $reponseChoisie->getId(), // identifiant de la réponse donnée
-                'est_correcte' => $reponseChoisie->isEstCorrecte(),// flag de correction (vrai/faux)
+                'id_question' => $questionCourante->getId(),      
+                'id_reponse_choisie' => $reponseChoisie->getId(), 
+                'est_correcte' => $reponseChoisie->isEstCorrecte(),
             ];
             $session->set('quiz_reponses' . $idTentative, $reponses);
         }
 
         // Variables passées au template d'exécution
         $vars = [
-            'questions' => $pagination,        // objet pagination (1 question)
-            'formReponse' => $formReponse,     // formulaire de réponse
-            'questionNumber' => $page,         // numéro de question affiché (1-based)
-            'estDernierrePage' => $estDernierrePage, // pour contrôler l'affichage du bouton "Terminer"
-            'tentative' => $tentative          // utile pour liens/infos de contexte
+            'questions' => $pagination,        
+            'formReponse' => $formReponse,     
+            'questionNumber' => $page,         
+            'estDernierrePage' => $estDernierrePage, 
+            'tentative' => $tentative          
         ];
 
         return $this->render ("quiz/quiz_executer_question.html.twig", $vars);
     }
 
-    // Page de fin de quiz : calcul des résultats et affichage du score
+    // Page de fin de quiz : calcul des résultats et affichage du pourcentage
     #[Route('/quiz/terminer/{id}', name: 'app_quiz_terminer')]
     public function terminerQuiz(Request $req, TentativeRepository $rep): Response
     {
@@ -123,14 +123,14 @@ final class QuizController extends AbstractController
         // Récupération de la tentative et des réponses stockées en session
         $tentative = $rep->find($idTentative);
         $session = $req->getSession();
-        $reponses = $session->get('quiz_reponses' . $idTentative, []);
+        $reponses = $session->get('quiz_reponses' . $idTentative, []); // cherche la clé en question ('quiz_reponses' . $idTentative) dans la session. Si tu la trouve pas, envoie un tableau vide [] 
 
-        // Comptage du total de questions (pour calcul de score)
+        // Comptage du total de questions (pour calcul de pourcentage)
         $totalquestions = count($tentative->getQuiz()->getQuestions());
         $totalQuestionsQuiz = 15;
         $reponsesCorrectes = 0;
 
-        // Parcourt des réponses enregistrées pour calculer le score
+        // Parcourt des réponses enregistrées pour calculer le pourcentage
         foreach($reponses as $reponse){
             if (!empty($reponse['est_correcte'])){
                 $reponsesCorrectes++;
@@ -144,7 +144,45 @@ final class QuizController extends AbstractController
         $reponsesDonnees = count($reponses);
         $reponsesMauvaises = max(0, $reponsesDonnees - $reponsesCorrectes);
         $nonRepondues = max(0, $totalQuestionsQuiz - $reponsesDonnees);
-        $rep->finirTentative($reponsesCorrectes, $tentative);
+        $rep->finirTentative(
+            $reponsesCorrectes,
+            $reponsesMauvaises,
+            $reponsesDonnees,
+            $nonRepondues,
+            $pourcentage,
+            $reponses,
+            $tentative
+        );
+        $session->remove('quiz_reponses' . $idTentative);
+        $details = [];
+        $questions = $tentative->getQuiz()->getQuestions();
+        $mapReponses = [];
+        foreach ($reponses as $r) {
+            $mapReponses[$r['id_question']] = $r; 
+        }
+
+        $numero = 1;
+        foreach ($questions as $q) {
+            $qid = $q->getId();
+            $user = $mapReponses[$qid] ?? null;
+
+            $bonneRep = null;
+            foreach ($q->getReponses() as $r) {
+                if ($r->isEstCorrecte()) { $bonneRep = $r; break; }
+            }
+
+            $details[] = [
+                'numero'         => $numero++,
+                'intitule'       => $q->getEnonce(),                 
+                'votre_reponse'  => $user ? ($q->getReponses()
+                                    ->filter(fn($r) => $r->getId() === $user['id_reponse_choisie'])
+                                    ->first()?->getTexte()) : null,
+                'bonne_reponse'  => $bonneRep?->getTexte(),
+                'est_correcte'   => $user['est_correcte'] ?? false,
+                'est_skip'       => $user === null,
+            ];
+        }
+        $duration = $tentative->formatDuration();
         $vars = [
             'tentative'           => $tentative,
             'reponses_correctes'  => $reponsesCorrectes, 
@@ -153,9 +191,11 @@ final class QuizController extends AbstractController
             'pourcentage'         => $pourcentage,               
             'reponses_donnees'    => $reponsesDonnees,
             'non_repondues'       => $nonRepondues,
+            'reponses_details'    => $details,
+            'temps_ecoule_label'  => $duration['label'],
+            'temps_ecoule_secondes' => $duration['seconds'],
         ];
     
-        
         return $this->render ("quiz/quiz_resultat.html.twig", $vars);
     }
 }

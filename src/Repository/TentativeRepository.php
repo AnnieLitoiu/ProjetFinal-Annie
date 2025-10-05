@@ -49,7 +49,7 @@ class TentativeRepository extends ServiceEntityRepository
         $tentative = new Tentative();
         $tentative->setDateDebut(new DateTime('now'));
         $tentative->setMaxTentatives(self::MAX_TENTATIVES);
-        $tentative->setScore(0);
+        $tentative->setPourcentage(0);
         $tentative->setQuiz($quiz);
         $em = $this->getEntityManager();
         $em->persist($tentative);
@@ -58,9 +58,21 @@ class TentativeRepository extends ServiceEntityRepository
         return $tentative;
     }
 
-    public function finirTentative(int $score, Tentative $tentative): Tentative {
+    public function finirTentative(
+                    int $reponsesCorrectes,
+                    int $reponsesMauvaises,
+                    int $reponsesDonnees,
+                    int $nonRepondues,
+                    float $pourcentage,
+                    array $reponses,
+                    Tentative $tentative): Tentative {
         $tentative->setDateFin(new DateTime('now'));
-        $tentative->setScore($score);
+        $tentative->setReponsesCorrectes($reponsesCorrectes);
+        $tentative->setReponsesMauvaises($reponsesMauvaises);
+        $tentative->setReponsesDonnees($reponsesDonnees);
+        $tentative->setNonRepondues($nonRepondues);
+        $tentative->setPourcentage($pourcentage);
+        $tentative->setReponsesUtilisateur($reponses);
         $em = $this->getEntityManager();
         $em->persist($tentative);
         $em->flush();

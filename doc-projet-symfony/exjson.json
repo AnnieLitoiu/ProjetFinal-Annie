@@ -1,0 +1,33 @@
+{
+    "0": { "id_question": 61, "id_reponse_choisie": 181, "est_correcte": true },
+    "1": { "id_question": 62, "id_reponse_choisie": 184, "est_correcte": true },
+    "14": {
+        "id_question": 75,
+        "id_reponse_choisie": 223,
+        "est_correcte": true
+    },
+    "2": { "id_question": 63, "id_reponse_choisie": 187, "est_correcte": true },
+    "3": { "id_question": 64, "id_reponse_choisie": 190, "est_correcte": true },
+    "4": { "id_question": 65, "id_reponse_choisie": 194, "est_correcte": true },
+    "5": { "id_question": 66, "id_reponse_choisie": 197, "est_correcte": true },
+    "6": { "id_question": 67, "id_reponse_choisie": 199, "est_correcte": true },
+    "7": { "id_question": 68, "id_reponse_choisie": 203, "est_correcte": true },
+    "8": { "id_question": 69, "id_reponse_choisie": 205, "est_correcte": true },
+    "9": { "id_question": 70, "id_reponse_choisie": 208, "est_correcte": true },
+    "10": {
+        "id_question": 71,
+        "id_reponse_choisie": 211,
+        "est_correcte": true
+    },
+    "11": {
+        "id_question": 72,
+        "id_reponse_choisie": 215,
+        "est_correcte": false
+    },
+    "12": {
+        "id_question": 73,
+        "id_reponse_choisie": 217,
+        "est_correcte": true
+    },
+    "13": { "id_question": 74, "id_reponse_choisie": 220, "est_correcte": true }
+}

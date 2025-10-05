@@ -2,14 +2,176 @@
 
 {% block title %}Résultats du quiz{% endblock %}
 
-{% block body %}
-  <h3>Résultats</h3>
-  <p>
-    Bonnes réponses : <strong>{{ reponses_correctes }}</strong> / {{ total_questions }}<br>
-    Mauvaises réponses : <strong>{{ reponses_mauvaises }}</strong><br>
-    Non répondues : <strong>{{ non_repondues }}</strong><br>
-    Score : <strong>{{ pourcentage }}%</strong>
-  </p>
+{% block stylesheets %}
+{# Styles spécifiques à la page résultat #}
+<style>
+  /* Couleurs utilitaires (palette turquoise) */
+  .text-turquoise { color:#0E7478!important; }
+  .bg-turquoise   { background-color:#0E7478!important; }
 
-  <a class="btn btn-outline-turquoise btn-sm" href="{{ path('accueil_welcome') }}">Home</a>
+  /* Bouton contour turquoise (hover -> fond plein) */
+  .btn-outline-turquoise {
+    color:#0E7478; border:1px solid #005f5f;
+  }
+  .btn-outline-turquoise:hover {
+    background:#0E7478; color:#fff;
+  }
+
+  /* Carte principale du panneau de résultat */
+  .result-card {
+    border: none; border-radius: 1rem; box-shadow: 0 10px 25px rgba(0,0,0,.06);
+  }
+
+  /* Petites tuiles de métriques (Bonnes rep / Temps / Score) */
+  .metric {
+    border-radius: .875rem; padding: 1.25rem; background:rgb(43, 163, 174);
+  }
+
+  /* Lignes du détail des réponses + variantes selon l’état */
+  .answer-item {
+    border-left: 4px solid #e9ecef; padding-left: 1rem; margin-left: .25rem;
+  }
+  .answer-item.is-correct   { border-left-color: #005f5f; }   /* bonne réponse */
+  .answer-item.is-wrong     { border-left-color: #dc3545; }   /* mauvaise réponse */
+  .answer-item.is-skipped   { border-left-color: #6c757d; }   /* non répondue */
+</style>
+{% endblock %}
+
+{% block body %}
+{# Détermine la couleur du badge de score final selon le pourcentage #}
+{% set badgeClass = pourcentage >= 80 ? 'bg-success'
+                    : (pourcentage >= 50 ? 'bg-warning' : 'bg-danger') %}
+
+<div class="container my-4 my-md-5">
+  <div class="card result-card p-3 p-md-4">
+    <div class="row g-4 align-items-center">
+      <div class="col-12 col-md-4 text-center">
+        <div>
+          {# Compteur principal: bonnes / total #}
+          <div class="display-5 fw-bold">{{ reponses_correctes }}/{{ total_questions }}</div>
+
+          {# Badge coloré du pourcentage total #}
+          <div class="h5 mt-2">
+            <span class="badge {{ badgeClass }} px-3 py-2">{{ pourcentage }}%</span>
+          </div>
+
+          {# Message dynamique selon le niveau du score #}
+          <div class="mt-2">
+            {% if pourcentage >= 80 %}<span class="text-success fw-semibold">Excellent</span>
+            {% elseif pourcentage >= 50 %}<span class="text-warning fw-semibold">Peut mieux faire</span>
+            {% else %}<span class="text-danger fw-semibold">À améliorer</span>{% endif %}
+          </div>
+
+          {# Barre de progression visuelle alignée sur le pourcentage #}
+          <div class="progress mt-3" role="progressbar" aria-valuenow="{{ pourcentage }}" aria-valuemin="0" aria-valuemax="100" style="height:10px;">
+            <div class="progress-bar {{ badgeClass }}" style="width: {{ pourcentage }}%"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-12 col-md-8">
+        <div class="row g-3">
+          {# Tuile: nombre de bonnes réponses #}
+          <div class="col-12 col-sm-4">
+            <div class="metric text-center">
+              <div class="h1 mb-0">{{ reponses_correctes }}</div>
+              <div class="text-muted small">Bonnes réponses</div>
+            </div>
+          </div>
+
+          {# Tuile: temps écoulé (label déjà calculé côté contrôleur) #}
+          <div class="col-12 col-sm-4">
+            <div class="metric text-center">
+                <div class="h1 mb-0">{{ temps_ecoule_label ?? '00:00' }}</div>
+                <div class="text-muted small">Temps écoulé</div>
+            </div>
+          </div>
+
+          {# Tuile: score final en pourcentage #}
+          <div class="col-12 col-sm-4">
+            <div class="metric text-center">
+              <div class="h1 mb-0">{{ pourcentage }}%</div>
+              <div class="text-muted small">Score final</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <hr class="my-4">
+
+    <h5 class="mb-3">Détail des réponses</h5>
+
+    {# 
+      Affiche la liste détaillée si "reponses_details" est fourni.
+      Format attendu pour chaque item :
+      { numero, intitule, votre_reponse, bonne_reponse, explication, est_correcte, est_skip }
+    #}
+    {% if reponses_details is defined and reponses_details|length > 0 %}
+      <div class="list-group list-group-flush">
+        {% for item in reponses_details %}
+          {# Calcule la classe d’état visuel pour la bordure gauche #}
+          {% set state =
+            item.est_skip ? 'is-skipped' :
+            (item.est_correcte ? 'is-correct' : 'is-wrong') %}
+          
+          <div class="list-group-item py-3 answer-item {{ state }}">
+            <div class="d-flex align-items-start justify-content-between">
+              <div class="me-3">
+                {# En-tête de la question #}
+                <div class="fw-semibold">Question {{ item.numero }} : {{ item.intitule }}</div>
+
+                {# Branches d’affichage selon: non répondue / correcte / incorrecte #}
+                {% if item.est_skip %}
+                  <div class="mt-1">
+                    <span class="badge bg-secondary">Non répondue</span>
+                  </div>
+                {% else %}
+                  {% if item.est_correcte %}
+                    <div class="mt-1 text-success">
+                      ✅ Votre réponse : <strong>{{ item.votre_reponse }}</strong>
+                    </div>
+                  {% else %}
+                    <div class="mt-1 text-danger">
+                      ❌ Votre réponse : <strong>{{ item.votre_reponse ?? '—' }}</strong>
+                    </div>
+                    <div class="text-success mt-1">
+                      ✅ Bonne réponse : <strong>{{ item.bonne_reponse }}</strong>
+                    </div>
+                  {% endif %}
+                {% endif %}
+              </div>
+
+              {# Badge latéral compact (✔ / ✖ / NR) #}
+              <div class="ms-auto">
+                {% if item.est_skip %}
+                  <span class="badge bg-secondary">NR</span>
+                {% elseif item.est_correcte %}
+                  <span class="badge bg-success">✔</span>
+                {% else %}
+                  <span class="badge bg-danger">✖</span>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      {# Message fallback si aucun détail disponible #}
+      <div class="alert alert-secondary">
+        Le détail des réponses n’est pas disponible pour cette tentative.
+      </div>
+    {% endif %}
+
+    {# Boutons d’action en bas de page #}
+    <div class="d-flex gap-2 mt-4">
+      <a class="btn btn-outline-turquoise" href="{{ path('app_start_quiz', {id: tentative.quiz.id}) }}">
+        Refaire le quiz
+      </a>
+      <a class="btn btn-outline-turquoise" href="{{ path('accueil_welcome') }}">
+        Retour à l’accueil
+      </a>
+    </div>
+  </div>
+</div>
 {% endblock %}
