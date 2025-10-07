@@ -24,20 +24,16 @@
 
       <div class="mt-4">
         <button type="submit" class="btn btn-outline-turquoise btn-sm">
-          Valider la réponse
+          {% if estDernierrePage %}
+            Valider la réponse et soumettre le quiz
+          {% else %}
+            Valider la réponse
+          {% endif %}
         </button>
       </div>
     {{ form_end(formReponse) }}
   {% endfor %}
 
-  {% if estDernierrePage %}
-    <div class="mt-4">
-      <a href="{{ path('app_quiz_terminer', { id: tentative.id }) }}"
-         class="btn btn-outline-turquoise btn-sm">
-        Soumettre le quiz
-      </a>
-    </div>
-  {% endif %}
 </div>
 
 <div class="navigation mt-4">

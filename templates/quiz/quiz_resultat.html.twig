@@ -58,7 +58,7 @@
           {# Message dynamique selon le niveau du score #}
           <div class="mt-2">
             {% if pourcentage >= 80 %}<span class="text-success fw-semibold">Excellent</span>
-            {% elseif pourcentage >= 50 %}<span class="text-warning fw-semibold">Peut mieux faire</span>
+            {% elseif pourcentage >= 50 %}<span class="text-warning fw-semibold">Tu peut mieux faire</span>
             {% else %}<span class="text-danger fw-semibold">À améliorer</span>{% endif %}
           </div>
 
@@ -100,7 +100,7 @@
 
     <hr class="my-4">
 
-    <h5 class="mb-3">Détail des réponses</h5>
+    <h5 class="mb-3">Détails des réponses</h5>
 
     {# 
       Affiche la liste détaillée si "reponses_details" est fourni.

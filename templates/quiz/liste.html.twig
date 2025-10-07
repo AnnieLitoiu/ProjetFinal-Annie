@@ -3,15 +3,29 @@
 {% block title %}Liste des quiz{% endblock %}
 
 {% block body %}
-	<h1>Voici les quiz pour le niveau choisi.</h1><br>
 
-	{% for quiz in quizzes %}
-		<ul>
-			<li><a href='{{path('app_start_quiz',{'id':quiz.id})}}'>{{ quiz.titre }}</a></li>
-		</ul>
-	{% endfor %}
-	<br>
-	<div class="navigation">
-		{{ knp_pagination_render(quizzes, '@KnpPaginator/Pagination/bootstrap_v5_pagination.html.twig') }}
-	</div>
+  <h1>Voici les quiz pour le niveau choisi.</h1><br>
+
+  <ul>
+    {% for quiz in quizzes %}
+      {% set titre = quiz.titre %}
+
+      {# Extraire le numéro après # #}
+      {% set numero = titre|split('#')[1]|split(' ')[0] %}
+
+      {# Extraire la partie après le tiret long — #}
+      {% set titre_restant = titre|split('—')[1]|trim %}
+
+      <li class="mb-3"> {# mb-3 = margin-bottom de Bootstrap #}
+        <a href="{{ path('app_start_quiz', {'id': quiz.id}) }}" class="quiz-link">
+          Quiz n°{{ numero }} — {{ titre_restant }}
+        </a>
+      </li>
+    {% endfor %}
+  </ul>
+
+  <div class="navigation">
+    {{ knp_pagination_render(quizzes, '@KnpPaginator/Pagination/bootstrap_v5_pagination.html.twig') }}
+  </div>
+
 {% endblock %}
