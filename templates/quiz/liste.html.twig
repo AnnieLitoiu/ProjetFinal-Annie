@@ -16,7 +16,7 @@
       {# Extraire la partie après le tiret long — #}
       {% set titre_restant = titre|split('—')[1]|trim %}
 
-      <li class="mb-3"> {# mb-3 = margin-bottom de Bootstrap #}
+      <li class="mb-3"> 
         <a href="{{ path('app_start_quiz', {'id': quiz.id}) }}" class="quiz-link">
           Quiz n°{{ numero }} — {{ titre_restant }}
         </a>

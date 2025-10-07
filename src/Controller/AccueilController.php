@@ -9,15 +9,12 @@ use Symfony\Component\Routing\Attribute\Route;
 
 final class AccueilController extends AbstractController
 {
-    // Route d’accueil “welcome” : affiche simplement le template d’accueil
     #[Route('/accueil/welcome', name: 'accueil_welcome')]
     public function index(): Response
     { 
-        // Rendu du template Twig sans variables supplémentaires
         return $this->render('accueil/index.html.twig');
     }
 
-    // Route qui liste tous les niveaux disponibles
     #[Route('/accueil/list-niveaux', name: 'accueil_list_niveaux')]
     public function listNiveaux(NiveauRepository $rep): Response
     {   

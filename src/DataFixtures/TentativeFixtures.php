@@ -21,7 +21,7 @@ class TentativeFixtures extends Fixture implements DependentFixtureInterface
             throw new \RuntimeException('No quizzes found. Please load Quiz fixtures first.');
         }
 
-        for ($i = 0; $i < 10; $i++) {
+        for ($i = 0; $i < 5; $i++) {
             $tentative = new TentativeEntity();
             $tentative->setMaxTentatives(TentativeRepository::MAX_TENTATIVES);
             $tentative->setDateDebut($faker->dateTime);

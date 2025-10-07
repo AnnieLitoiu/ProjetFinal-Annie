@@ -22,7 +22,7 @@ class UtilisateurFixtures extends Fixture
     {
         $faker = Faker\Factory::create('fr_FR');
         
-        for ($i = 1; $i <= 5; $i++) {
+        for ($i = 1; $i <= 10; $i++) {
             $utilisateur = new Utilisateur();
             $utilisateur->setEmail("user" . $i . "@gmail.com");
             $utilisateur->setRoles(['ROLE_USER']);

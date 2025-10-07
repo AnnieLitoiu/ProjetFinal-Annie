@@ -37,16 +37,20 @@ class RegistrationController extends AbstractController
             // Hache le mot de passe en clair et l'enregistre sur l'entité
             $user->setPassword($userPasswordHasher->hashPassword($user, $plainPassword));
 
-            // Attribue le rôle par défaut à l'utilisateur
             $user->setRoles(['ROLE_USER']);
 
+            // Sauvegarde l'utilisateur en base
             $entityManager->persist($user);
             $entityManager->flush();
-
-            return $security->login($user, 'form_login', 'main');
+        
+            // Connecte l'utilisateur et redirige vers la page d'accueil
+            $security->login($user, 'form_login', 'main');
+            return $this->redirectToRoute('accueil_welcome'); 
         }
+
+        // Affiche le formulaire d'inscription -> plus besoin pour moment
         return $this->render('registration/register.html.twig', [
-            'registrationForm' => $form,
+            'registrationForm' => $form->createView(),
         ]);
     }
 }

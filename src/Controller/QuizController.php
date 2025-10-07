@@ -42,7 +42,9 @@ final class QuizController extends AbstractController
     #[Route('/quiz/{id}/start', name: 'app_start_quiz', requirements: ['id' => '\d+'])]
     public function startQuiz(Request $req, TentativeRepository $rep, QuizRepository $repQuiz): Response
     {
+        // Récupération de l'id du quiz depuis la requête (URL)
         $idQuiz = $req->get('id');
+        // Recherche du quiz correspondant à cet id dans la base de données
         $quiz = $repQuiz->find($idQuiz);
 
         // Création/enregistrement d'une nouvelle tentative associée au quiz

@@ -81,7 +81,6 @@ final class QuestionsController extends AbstractController
         return $this->redirectToRoute('app_quiz_terminer', ['id' => $idTentative]);
     }
 
-    // Variables passées au template d'exécution (inchangées)
     $vars = [
         'questions' => $pagination,
         'formReponse' => $formReponse,
@@ -93,9 +92,6 @@ final class QuestionsController extends AbstractController
         return $this->render("quiz/quiz_executer_question.html.twig", $vars);
     }
 
-
-
-    // Page de fin de quiz : calcul des résultats et affichage du pourcentage
     #[Route('/quiz/terminer/{id}', name: 'app_quiz_terminer')]
     public function terminerQuiz(Request $req, TentativeRepository $rep): Response
     {
