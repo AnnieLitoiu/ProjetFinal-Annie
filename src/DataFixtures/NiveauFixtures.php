@@ -5,7 +5,6 @@ namespace App\DataFixtures;
 use App\Entity\Niveau;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Persistence\ObjectManager;
-use Faker;
 
 class NiveauFixtures extends Fixture
 {

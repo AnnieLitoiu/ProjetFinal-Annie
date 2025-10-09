@@ -82,7 +82,6 @@ class Niveau
     public function removeQuiz(Quiz $quiz): static
     {
         if ($this->quizzes->removeElement($quiz)) {
-            // set the owning side to null (unless already changed)
             if ($quiz->getNiveau() === $this) {
                 $quiz->setNiveau(null);
             }

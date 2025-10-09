@@ -9,76 +9,79 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Knp\Component\Pager\PaginatorInterface;
+use App\Repository\QuestionRepository;
 
 final class QuestionsController extends AbstractController
 {   
     #[Route('/quiz/jouer/{id}', name: 'app_quiz_jouer')]
-    public function executerQuestion(Request $req, TentativeRepository $rep, PaginatorInterface $paginator): Response
+    public function executerQuestion(
+        Request $req,
+        TentativeRepository $rep,
+        QuestionRepository $questionRepo,
+        PaginatorInterface $paginator
+    ): Response
     {
+        $idTentative = $req->get('id');
+        // Récupère la tentative en cours et les questions du quiz
+        $tentative = $rep->trouverAvecQuiz($idTentative);
 
-    $idTentative = $req->get('id');
+        // Numéro de page courante (?page=...), par défaut 1
+        $page = $req->query->getInt('page', 1);
 
-    // Récupère la tentative en cours et les questions du quiz
-    $tentative = $rep->find($idTentative);
-    $questions = $tentative->getQuiz()->getQuestions();
-
-    // Numéro de page courante (?page=...), par défaut 1
-    $page = $req->query->getInt('page', 1);
-
-    $nbQuestions = count($questions);
-    if ($nbQuestions === 0) {
-
-        return $this->redirectToRoute('app_quiz_terminer', ['id' => $idTentative]);
-    }
-    if ($page < 1) { $page = 1; }
-    if ($page > $nbQuestions) {
-        
-        return $this->redirectToRoute('app_quiz_terminer', ['id' => $idTentative]);
-    }
-
-    // Pagination sur la collection de questions (1 question par page)
-    $pagination = $paginator->paginate($questions, $page, 1);
-
-    // Index de la question dans le tableau (0-based)
-    $indexQuestion = $page - 1;
-
-    // Récupération de l'objet Question correspondant à la page courante
-    $questionCourante = $questions[$indexQuestion];
-
-    // Indique si on se trouve sur la dernière page (dernière question)
-    $estDernierrePage = ($indexQuestion === $nbQuestions - 1);
-
-    // Création du formulaire de réponse pour la question courante
-    $formReponse = $this->createForm(ReponseType::class, null, ['question' => $questionCourante]);
-    $formReponse->handleRequest($req);
-
-    // Si on a validé la réponse, on enregistre puis on redirige. PRG (Post/Redirect/Get)
-    if ($formReponse->isSubmitted() && $formReponse->isValid()) {
-        $reponseChoisie = $formReponse->get('reponse')->getData();
-
-        // Lecture des réponses en session, clés isolées par tentative
-        $session = $req->getSession();
-        $cleSession = 'quiz_reponses' . $idTentative;
-        $reponses = $session->get($cleSession, []);
-
-        // On mémorise la réponse pour cette question (index courant)
-        $reponses[$indexQuestion] = [
-            'id_question'        => $questionCourante->getId(),
-            'id_reponse_choisie' => $reponseChoisie->getId(),
-            'est_correcte'       => $reponseChoisie->isEstCorrecte(),
-        ];
-        $session->set($cleSession, $reponses);
-
-        // Redirection automatique :
-        // - Si ce n'est pas la dernière question -> page suivante
-        // - Sinon -> page de fin
-        if (!$estDernierrePage) {
-            return $this->redirectToRoute('app_quiz_jouer', [
-                'id'   => $idTentative,
-                'page' => $page + 1,
-            ]);
+        $nbQuestions = $questionRepo->compterParQuizId($tentative->getQuiz()->getId());
+        if ($nbQuestions === 0) {
+             return $this->redirectToRoute('app_quiz_terminer', ['id' => $idTentative]);
         }
-        return $this->redirectToRoute('app_quiz_terminer', ['id' => $idTentative]);
+        if ($page < 1) { $page = 1; }
+        if ($page > $nbQuestions) { 
+            return $this->redirectToRoute('app_quiz_terminer', ['id' => $idTentative]);
+        }
+
+        // Pagination sur la collection de questions (1 question par page)
+        $requeteQuestions = $questionRepo->requeteParQuizId($tentative->getQuiz()->getId());
+        $pagination = $paginator->paginate($requeteQuestions, $page, 1);
+
+        // Index de la question dans le tableau (0-based)
+        $indexQuestion = $page - 1;
+
+        // Récupération de l'objet Question correspondant à la page courante
+        $items = $pagination->getItems();
+        $questionCourante = $items[0] ?? null;
+
+        // Indique si on se trouve sur la dernière page (dernière question)
+        $estDernierrePage = ($indexQuestion === $nbQuestions - 1);
+
+        // Création du formulaire de réponse pour la question courante
+        $formReponse = $this->createForm(ReponseType::class, null, ['question' => $questionCourante]);
+        $formReponse->handleRequest($req);
+
+        // Si on a validé la réponse, on enregistre puis on redirige. PRG (Post/Redirect/Get)
+        if ($formReponse->isSubmitted() && $formReponse->isValid()) {
+            $reponseChoisie = $formReponse->get('reponse')->getData();
+
+            // Lecture des réponses en session, clés isolées par tentative
+            $session = $req->getSession();
+            $cleSession = 'quiz_reponses' . $idTentative;
+            $reponses = $session->get($cleSession, []);
+
+            // On mémorise la réponse pour cette question (index courant)
+            $reponses[$indexQuestion] = [
+                'id_question'        => $questionCourante->getId(),
+                'id_reponse_choisie' => $reponseChoisie->getId(),
+                'est_correcte'       => $reponseChoisie->isEstCorrecte(),
+            ];
+            $session->set($cleSession, $reponses);
+
+            // Redirection automatique :
+            // - Si ce n'est pas la dernière question -> page suivante
+            // - Sinon -> page de fin
+            if (!$estDernierrePage) {
+                return $this->redirectToRoute('app_quiz_jouer', [
+                    'id'   => $idTentative,
+                    'page' => $page + 1,
+                ]);
+            }
+            return $this->redirectToRoute('app_quiz_terminer', ['id' => $idTentative]);
     }
 
     $vars = [
@@ -93,18 +96,21 @@ final class QuestionsController extends AbstractController
     }
 
     #[Route('/quiz/terminer/{id}', name: 'app_quiz_terminer')]
-    public function terminerQuiz(Request $req, TentativeRepository $rep): Response
+    public function terminerQuiz(
+        Request $req,
+        TentativeRepository $rep,
+        QuestionRepository $questionRepo,
+    ): Response
     {
         $idTentative = $req->get('id');
-
         // Récupération de la tentative et des réponses stockées en session
-        $tentative = $rep->find($idTentative);
+        $tentative = $rep->trouverAvecQuiz($idTentative);
         $session = $req->getSession();
         $reponses = $session->get('quiz_reponses' . $idTentative, []); // cherche la clé en question ('quiz_reponses' . $idTentative) dans la session. Si tu la trouve pas, envoie un tableau vide [] 
 
         // Comptage du total de questions (pour calcul de pourcentage)
-        $totalquestions = count($tentative->getQuiz()->getQuestions());
-        $totalQuestionsQuiz = 15;
+        $totalquestions = $questionRepo->compterParQuizId($tentative->getQuiz()->getId());
+        $totalQuestionsQuiz = max(1, $totalquestions);
         $reponsesCorrectes = 0;
 
         // Parcourt des réponses enregistrées pour calculer le pourcentage
@@ -132,7 +138,7 @@ final class QuestionsController extends AbstractController
         );
         $session->remove('quiz_reponses' . $idTentative);
         $details = [];
-        $questions = $tentative->getQuiz()->getQuestions();
+        $questions = $questionRepo->requeteParQuizId($tentative->getQuiz()->getId())->getResult();
         $mapReponses = [];
         foreach ($reponses as $r) {
             $mapReponses[$r['id_question']] = $r; 

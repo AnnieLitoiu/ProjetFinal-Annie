@@ -5,6 +5,7 @@ namespace App\Repository;
 use App\Entity\Quiz;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
+use Doctrine\ORM\Query;
 
 /**
  * @extends ServiceEntityRepository<Quiz>
@@ -16,28 +17,22 @@ class QuizRepository extends ServiceEntityRepository
         parent::__construct($registry, Quiz::class);
     }
 
-    //    /**
-    //     * @return Quiz[] Returns an array of Quiz objects
-    //     */
-    //    public function findByExampleField($value): array
-    //    {
-    //        return $this->createQueryBuilder('q')
-    //            ->andWhere('q.exampleField = :val')
-    //            ->setParameter('val', $value)
-    //            ->orderBy('q.id', 'ASC')
-    //            ->setMaxResults(10)
-    //            ->getQuery()
-    //            ->getResult()
-    //        ;
-    //    }
+    public function requeteParNiveauId(int $idNiveau): Query
+    {
+        return $this->createQueryBuilder('q')
+            ->andWhere('q.niveau = :niveau')
+            ->setParameter('niveau', $idNiveau)
+            ->orderBy('q.id', 'ASC') 
+            ->getQuery();
+    }
 
-    //    public function findOneBySomeField($value): ?Quiz
-    //    {
-    //        return $this->createQueryBuilder('q')
-    //            ->andWhere('q.exampleField = :val')
-    //            ->setParameter('val', $value)
-    //            ->getQuery()
-    //            ->getOneOrNullResult()
-    //        ;
-    //    }
+    public function compterParNiveauId(int $idNiveau): int
+    {
+        return (int) $this->createQueryBuilder('q')
+            ->select('COUNT(q.id)')
+            ->andWhere('q.niveau = :niveau')
+            ->setParameter('niveau', $idNiveau)
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
 }

@@ -15,16 +15,4 @@ class NiveauRepository extends ServiceEntityRepository
     {
         parent::__construct($registry, Niveau::class);
     }
-
-
-
-//    public function findOneBySomeField($value): ?Niveau
-//    {
-//        return $this->createQueryBuilder('n')
-//            ->andWhere('n.exampleField = :val')
-//            ->setParameter('val', $value)
-//            ->getQuery()
-//            ->getOneOrNullResult()
-//        ;
-//    }
 }

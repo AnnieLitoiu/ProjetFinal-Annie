@@ -15,15 +15,17 @@ final class QuizController extends AbstractController
 {
     // Liste paginée des quiz pour un niveau donné
     #[Route('/quiz/liste/{niveau}', name: 'app_quiz_liste')]
-    public function quizListe(Request $req, QuizRepository $rep, NiveauRepository $repNiveau, PaginatorInterface $paginator): Response 
+    public function quizListe(
+        Request $req, 
+        QuizRepository $rep, 
+        NiveauRepository $repNiveau, 
+        PaginatorInterface $paginator
+    ): Response 
     {
         $idNiveau = $req->get('niveau');
         
         // Requête Doctrine (QueryBuilder) pour récupérer les quiz du niveau
-        $query = $rep->createQueryBuilder('q')
-        ->where('q.niveau = :niveau')
-        ->setParameter('niveau', $idNiveau)
-        ->getQuery();
+        $query = $rep->requeteParNiveauId((int) $idNiveau);
         
         // Pagination des résultats (5 éléments par page)
         $pagination = $paginator->paginate(

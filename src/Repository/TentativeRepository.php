@@ -20,32 +20,8 @@ class TentativeRepository extends ServiceEntityRepository
         parent::__construct($registry, Tentative::class);
     }
 
-    //    /**
-    //     * @return Tentative[] Returns an array of Tentative objects
-    //     */
-    //    public function findByExampleField($value): array
-    //    {
-    //        return $this->createQueryBuilder('t')
-    //            ->andWhere('t.exampleField = :val')
-    //            ->setParameter('val', $value)
-    //            ->orderBy('t.id', 'ASC')
-    //            ->setMaxResults(10)
-    //            ->getQuery()
-    //            ->getResult()
-    //        ;
-    //    }
-
-    //    public function findOneBySomeField($value): ?Tentative
-    //    {
-    //        return $this->createQueryBuilder('t')
-    //            ->andWhere('t.exampleField = :val')
-    //            ->setParameter('val', $value)
-    //            ->getQuery()
-    //            ->getOneOrNullResult()
-    //        ;
-    //    }
-
-    public function saveTentative(Quiz $quiz): Tentative {
+    public function saveTentative(Quiz $quiz
+        ): Tentative {
         $tentative = new Tentative();
         $tentative->setDateDebut(new DateTime('now'));
         $tentative->setMaxTentatives(self::MAX_TENTATIVES);
@@ -65,7 +41,8 @@ class TentativeRepository extends ServiceEntityRepository
                     int $nonRepondues,
                     float $pourcentage,
                     array $reponses,
-                    Tentative $tentative): Tentative {
+                    Tentative $tentative
+        ): Tentative {
         $tentative->setDateFin(new DateTime('now'));
         $tentative->setReponsesCorrectes($reponsesCorrectes);
         $tentative->setReponsesMauvaises($reponsesMauvaises);
@@ -78,5 +55,15 @@ class TentativeRepository extends ServiceEntityRepository
         $em->flush();
 
         return $tentative;
+    }
+
+    public function trouverAvecQuiz(int $id): ?Tentative
+    {
+        return $this->createQueryBuilder('t')
+            ->leftJoin('t.quiz', 'q')->addSelect('q')
+            ->andWhere('t.id = :id')
+            ->setParameter('id', $id)
+            ->getQuery()
+            ->getOneOrNullResult();
     }
 }

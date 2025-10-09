@@ -16,28 +16,26 @@ class ReponseRepository extends ServiceEntityRepository
         parent::__construct($registry, Reponse::class);
     }
 
-    //    /**
-    //     * @return Reponse[] Returns an array of Reponse objects
-    //     */
-    //    public function findByExampleField($value): array
-    //    {
-    //        return $this->createQueryBuilder('r')
-    //            ->andWhere('r.exampleField = :val')
-    //            ->setParameter('val', $value)
-    //            ->orderBy('r.id', 'ASC')
-    //            ->setMaxResults(10)
-    //            ->getQuery()
-    //            ->getResult()
-    //        ;
-    //    }
+    /**
+     * @param int[] $idsQuestions
+     * @return array<int,string> [id_question => texteBonneRéponse]
+     */
+    public function trouverTexteBonnesReponses(array $idsQuestions): array
+    {
+        if (!$idsQuestions) return [];
 
-    //    public function findOneBySomeField($value): ?Reponse
-    //    {
-    //        return $this->createQueryBuilder('r')
-    //            ->andWhere('r.exampleField = :val')
-    //            ->setParameter('val', $value)
-    //            ->getQuery()
-    //            ->getOneOrNullResult()
-    //        ;
-    //    }
+        $rows = $this->createQueryBuilder('r')
+            ->select('IDENTITY(r.question) AS id_question, r.texte AS texte')
+            ->andWhere('r.question IN (:ids)')
+            ->andWhere('r.estCorrecte = true')
+            ->setParameter('ids', $idsQuestions)
+            ->getQuery()
+            ->getArrayResult();
+
+        $map = [];
+        foreach ($rows as $row) {
+            $map[(int)$row['id_question']] = $row['texte'];
+        }
+        return $map;
+    }
 }

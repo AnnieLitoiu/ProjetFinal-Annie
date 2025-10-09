@@ -1,0 +1,73 @@
+:root {
+    --turquoise: #007f7f;
+    --turquoise-dark: #005f5f;
+    --turquoise-verylight: #e0f7f7;
+  }
+  
+  body {
+    background-color: #ffffff !important;
+    color: hsla(180, 100%, 24.9%, 0.9);
+  }
+  
+  a {
+    color: #000;
+    text-decoration: none;
+  }
+  a:hover {
+    text-decoration: underline;
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    color: var(--turquoise);
+  }
+  
+  .navbar-custom {
+    background-color: var(--turquoise-verylight);
+    border-bottom: 1px solid var(--turquoise);
+  }
+  
+  .btn-turquoise {
+    background-color: var(--turquoise);
+    color: #fff;
+    border: none;
+  }
+  .btn-turquoise:hover {
+    background-color: var(--turquoise-dark);
+    color: #fff;
+  }
+  
+  .btn-outline-turquoise {
+    color: var(--turquoise);
+    border: 1px solid var(--turquoise);
+    background-color: transparent;
+  }
+
+  .btn-outline-turquoise:hover {
+    background-color: var(--turquoise);
+    color: #fff;
+  }
+  
+  .img-center {
+    display: block !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+    float: none !important;
+    max-width: 100%;
+    height: auto;
+  }
+  
+  .choice-item label {
+    display: inline-block;
+    margin-right: 10px;
+  }
+
+  .choice-item input {
+    margin-bottom: 4px;
+  }
+
+  .choice-group {
+    display: block;
+  }
+  
+
+  

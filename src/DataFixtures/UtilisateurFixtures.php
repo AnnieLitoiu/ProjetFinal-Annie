@@ -44,6 +44,5 @@ class UtilisateurFixtures extends Fixture
             $this->addReference("admin" . $i, $utilisateur);
         }
         $manager->flush();
-
     }
 }
