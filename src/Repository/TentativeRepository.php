@@ -7,6 +7,8 @@ use App\Entity\Tentative;
 use DateTime;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
+use App\Entity\Utilisateur;
+use Doctrine\ORM\Query;
 
 /**
  * @extends ServiceEntityRepository<Tentative>
@@ -20,13 +22,15 @@ class TentativeRepository extends ServiceEntityRepository
         parent::__construct($registry, Tentative::class);
     }
 
-    public function saveTentative(Quiz $quiz
+    public function saveTentative(Quiz $quiz,
+                    Utilisateur $utilisateur
         ): Tentative {
         $tentative = new Tentative();
         $tentative->setDateDebut(new DateTime('now'));
         $tentative->setMaxTentatives(self::MAX_TENTATIVES);
         $tentative->setPourcentage(0);
         $tentative->setQuiz($quiz);
+        $tentative->setUtilisateur($utilisateur);
         $em = $this->getEntityManager();
         $em->persist($tentative);
         $em->flush();
@@ -65,5 +69,14 @@ class TentativeRepository extends ServiceEntityRepository
             ->setParameter('id', $id)
             ->getQuery()
             ->getOneOrNullResult();
+    }
+
+    public function requeteParUtilisateur(Utilisateur $utilisateur): Query
+    {
+        return $this->createQueryBuilder('t')
+            ->andWhere('t.utilisateur = :utilisateur')
+            ->setParameter('utilisateur', $utilisateur)
+            ->orderBy('t.dateDebut', 'DESC')
+            ->getQuery();
     }
 }

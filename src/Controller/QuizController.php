@@ -48,9 +48,11 @@ final class QuizController extends AbstractController
         $idQuiz = $req->get('id');
         // Recherche du quiz correspondant à cet id dans la base de données
         $quiz = $repQuiz->find($idQuiz);
-
+        // Récupération de l'id de l'utilisateur
+        $utilisateur = $this->getUser();
+        
         // Création/enregistrement d'une nouvelle tentative associée au quiz
-        $tentative = $rep->saveTentative($quiz);
+        $tentative = $rep->saveTentative($quiz, $utilisateur);
 
         // Redirection vers la route qui affiche les questions (paginées)
         return $this->redirectToRoute('app_quiz_jouer',['id' => $tentative->getId()]);

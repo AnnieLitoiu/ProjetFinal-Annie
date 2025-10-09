@@ -3,6 +3,8 @@
 namespace App\Entity;
 
 use App\Repository\UtilisateurRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
@@ -32,6 +34,17 @@ class Utilisateur implements UserInterface, PasswordAuthenticatedUserInterface
      */
     #[ORM\Column]
     private ?string $password = null;
+
+    /**
+     * @var Collection<int, Tentative>
+     */
+    #[ORM\OneToMany(targetEntity: Tentative::class, mappedBy: 'utilisateur')]
+    private Collection $tentatives;
+
+    public function __construct()
+    {
+        $this->tentatives = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -112,5 +125,32 @@ class Utilisateur implements UserInterface, PasswordAuthenticatedUserInterface
     public function eraseCredentials(): void
     {
         // @deprecated, to be removed when upgrading to Symfony 8
+    }
+
+    /**
+     * @return Collection<int, Tentative>
+     */
+    public function getTentatives(): Collection
+    {
+        return $this->tentatives;
+    }
+
+    public function addTentative(Tentative $tentative): static
+    {
+        if (!$this->tentatives->contains($tentative)) {
+            $this->tentatives->add($tentative);
+            $tentative->setUtilisateur($this);
+        }
+        return $this;
+    }
+
+    public function removeTentative(Tentative $tentative): static
+    {
+        if ($this->tentatives->removeElement($tentative)) {
+            if ($tentative->getUtilisateur() === $this) {
+                throw new \LogicException();
+            }
+        }
+        return $this;
     }
 }

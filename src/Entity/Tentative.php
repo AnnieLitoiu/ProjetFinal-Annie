@@ -45,6 +45,9 @@ class Tentative
     #[ORM\Column(nullable: true)]
     private ?array $reponsesUtilisateur = null;
 
+    #[ORM\ManyToOne(inversedBy: 'tentatives')]
+    private ?Utilisateur $utilisateur = null;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -181,6 +184,18 @@ class Tentative
         $label = $h > 0 ? sprintf('%d:%02d:%02d', $h, $m, $s) : sprintf('%02d:%02d', $m, $s);
 
         return ['seconds' => $seconds, 'label' => $label];
+    }
+
+    public function getUtilisateur(): Utilisateur
+    {
+        return $this->utilisateur;
+    }
+
+    public function setUtilisateur(Utilisateur $utilisateur): static
+    {
+        $this->utilisateur = $utilisateur;
+
+        return $this;
     }
 
 }

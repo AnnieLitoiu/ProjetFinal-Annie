@@ -35,9 +35,9 @@ class UtilisateurFixtures extends Fixture
         }
         for ($i = 1; $i <= 1; $i++) {
             $utilisateur = new Utilisateur();
-            $utilisateur->setEmail("ilinca" . $i . "@gmail.com");
+            $utilisateur->setEmail("ilinca@gmail.com");
             $utilisateur->setRoles(['ROLE_ADMIN']);
-            $utilisateur->setPassword($this->hasher->hashPassword($utilisateur, "cucurigu" . $i));
+            $utilisateur->setPassword($this->hasher->hashPassword($utilisateur, "cucurigu"));
             $manager->persist($utilisateur);
 
             // créer une référence qui sera accéssible depuis partout (toutes les fixtures)
