@@ -10,10 +10,13 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Knp\Component\Pager\PaginatorInterface;
 use App\Repository\QuestionRepository;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 
+#[IsGranted('ROLE_USER')]
 final class QuestionsController extends AbstractController
 {   
     #[Route('/quiz/jouer/{id}', name: 'app_quiz_jouer')]
+    
     public function executerQuestion(
         Request $req,
         TentativeRepository $rep,

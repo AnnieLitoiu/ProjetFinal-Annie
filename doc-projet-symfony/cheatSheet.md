@@ -77,7 +77,7 @@ git branch -M main
 git commit...
 
 git remote remove origin # effacer le lien avec le repo remote
-git reset --hard
+git reset --hard # revenir au dernier commit sans enregistrer les modifications faites entre temps 
 git reset --hard HEAD
 git clean -df
 git clean -f
