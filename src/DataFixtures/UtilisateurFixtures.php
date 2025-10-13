@@ -28,20 +28,19 @@ class UtilisateurFixtures extends Fixture
             $utilisateur->setRoles(['ROLE_USER']);
             $utilisateur->setPassword($this->hasher->hashPassword($utilisateur, "password" . $i));
             
-            // créer une référence qui sera accéssible depuis partout (toutes les fixtures)
             $this->addReference("utilisateur" . $i, $utilisateur);
             
             $manager->persist($utilisateur);
         }
         for ($i = 1; $i <= 1; $i++) {
             $utilisateur = new Utilisateur();
-            $utilisateur->setEmail("ilinca@gmail.com");
+            $utilisateur->setEmail("annie@gmail.com");
             $utilisateur->setRoles(['ROLE_ADMIN']);
-            $utilisateur->setPassword($this->hasher->hashPassword($utilisateur, "cucurigu"));
-            $manager->persist($utilisateur);
-
-            // créer une référence qui sera accéssible depuis partout (toutes les fixtures)
+            $utilisateur->setPassword($this->hasher->hashPassword($utilisateur, "hello13"));
+            
             $this->addReference("admin" . $i, $utilisateur);
+            
+            $manager->persist($utilisateur);
         }
         $manager->flush();
     }

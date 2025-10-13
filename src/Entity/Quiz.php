@@ -79,7 +79,6 @@ class Quiz
     public function removeTentative(Tentative $tentative): static
     {
         if ($this->tentatives->removeElement($tentative)) {
-            // set the owning side to null (unless already changed)
             if ($tentative->getQuiz() === $this) {
                 $tentative->setQuiz(null);
             }
@@ -109,7 +108,6 @@ class Quiz
     public function removeQuestion(Question $question): static
     {
         if ($this->questions->removeElement($question)) {
-            // set the owning side to null (unless already changed)
             if ($question->getQuiz() === $this) {
                 $question->setQuiz(null);
             }

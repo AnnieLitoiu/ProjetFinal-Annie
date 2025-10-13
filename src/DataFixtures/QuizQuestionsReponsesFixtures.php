@@ -9,16 +9,14 @@ use App\Entity\Reponse;
 use Doctrine\Persistence\ObjectManager;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Common\DataFixtures\DependentFixtureInterface;
-use Faker;
 
 class QuizQuestionsReponsesFixtures extends Fixture implements DependentFixtureInterface
 {
     public function load(ObjectManager $manager): void
     {
-        $faker = Faker\Factory::create('fr_FR');
 
-        // Series de questions par niveau : [enoncé, [rép1, rép2, rép3], indexBonneRéponse]
-        $questionsParNiveau = [            
+        // Liste des questions par niveau : [énoncé, [rép1, rép2, rép3], indexBonneRéponse]
+        $questionsParNiveau = [
             'debutant' => [
                 ["Quelle balise HTML sert à créer un lien hypertexte ?", ["<a>", "<link>", "<href>"], 0],
                 ["Quelle commande affiche une chaîne en PHP ?", ["echo", "print_r()", "console.log()"], 0],
@@ -93,17 +91,24 @@ class QuizQuestionsReponsesFixtures extends Fixture implements DependentFixtureI
             ],
         ];
 
-        $niveauRefs = [
+        // Références Doctrine des niveaux
+        $refNiveaux = [
             'debutant' => 'niveau_debutant',
             'intermediaire' => 'niveau_intermediaire',
             'avance' => 'niveau_avance',
         ];
 
-        foreach ($niveauRefs as $slug => $refName) {
+        // Libellés en français avec accents
+        $libellesNiveaux = [
+            'debutant' => 'Débutant',
+            'intermediaire' => 'Intermédiaire',
+            'avance' => 'Avancé',
+        ];
+
+        foreach ($refNiveaux as $cleNiveau => $refName) {
             /** @var Niveau $niveau */
             $niveau = $this->getReference($refName, Niveau::class);
 
-            // 15 quiz par niveau
             for ($qz = 1; $qz <= 15; $qz++) {
                 $quiz = new Quiz();
                 $themes = [
@@ -128,26 +133,26 @@ class QuizQuestionsReponsesFixtures extends Fixture implements DependentFixtureI
                     'Design Patterns & Architecture',
                     'Fichiers & Flux (CSV/JSON/Streams)',
                 ];
+
+                // Génère un titre comme "Quiz Intermédiaire #3 — Git & Versioning"
                 $quiz->setTitre(sprintf(
                     "Quiz %s #%d — %s",
-                    ucfirst($slug === 'intermediaire' ? 'intermédiaire' : $slug),
+                    $libellesNiveaux[$cleNiveau],
                     $qz,
                     $themes[($qz - 1) % count($themes)]
                 ));
                 $quiz->setNiveau($niveau);
 
-                // tirer 15 questions du pool du niveau (sans répétition si possible)
-                $pool = $questionsParNiveau[$slug];
-                // mélanger pour varier entre les 15 quiz
-                shuffle($pool);
-                $selected = array_slice($pool, 0, 15);
+                // Sélection aléatoire de 15 questions du niveau
+                $ensembleQuestions = $questionsParNiveau[$cleNiveau];
+                shuffle($ensembleQuestions);
+                $selected = array_slice($ensembleQuestions, 0, 15);
 
-                foreach ($selected as $idx => [$enonce, $reps, $correctIndex]) {
+                foreach ($selected as [$enonce, $reps, $correctIndex]) {
                     $question = new Question();
                     $question->setEnonce($enonce);
                     $question->setQuiz($quiz);
 
-                    // 3 réponses dont 1 correcte (index $correctIndex)
                     foreach ($reps as $i => $texteRep) {
                         $reponse = new Reponse();
                         $reponse->setTexte($texteRep);

@@ -61,22 +61,25 @@ class TentativeRepository extends ServiceEntityRepository
         return $tentative;
     }
 
+    // Récupère une tentative avec les infos du quiz associé
     public function trouverAvecQuiz(int $id): ?Tentative
     {
-        return $this->createQueryBuilder('t')
-            ->leftJoin('t.quiz', 'q')->addSelect('q')
-            ->andWhere('t.id = :id')
-            ->setParameter('id', $id)
-            ->getQuery()
-            ->getOneOrNullResult();
+        return $this->createQueryBuilder('t')             // 't' est l'alias de Tentative
+            ->leftJoin('t.quiz', 'q')                      // jointure avec l'entité Quiz
+            ->addSelect('q')                               // sélectionne aussi les données du quiz
+            ->andWhere('t.id = :id')                       // filtre par ID de la tentative
+            ->setParameter('id', $id)                      // remplace le paramètre :id
+            ->getQuery()                                   // génère la requête
+            ->getOneOrNullResult();                        // renvoie un résultat ou null
     }
-
+    
+    // Renvoie une requête pour récupérer les tentatives d’un utilisateur
     public function requeteParUtilisateur(Utilisateur $utilisateur): Query
     {
-        return $this->createQueryBuilder('t')
-            ->andWhere('t.utilisateur = :utilisateur')
-            ->setParameter('utilisateur', $utilisateur)
-            ->orderBy('t.dateDebut', 'DESC')
-            ->getQuery();
+        return $this->createQueryBuilder('t')                   
+            ->andWhere('t.utilisateur = :utilisateur')          // filtre par utilisateur
+            ->setParameter('utilisateur', $utilisateur)         // injecte la valeur de l'utilisateur
+            ->orderBy('t.dateDebut', 'DESC')                    // trie par date de début décroissante
+            ->getQuery();                                       // renvoie la requête
     }
 }
