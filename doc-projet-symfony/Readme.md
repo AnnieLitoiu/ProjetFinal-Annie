@@ -11,7 +11,7 @@ Un quiz peut être tenté par plusieurs candidats.
 
 Un quiz appartient à un niveau.
 
-Une catégorie peut contenir plusieurs quiz.
+Un niveau peut contenir plusieurs quiz.
 
 Un quiz est composé de plusieurs questions.
 
@@ -21,6 +21,6 @@ Une question est composée de plusieurs propositions.
 
 Une proposition est toujours liée à une seule question.
 
-Un candidat, lors d’une tentative, associe une ou plusieurs propositions comme réponses aux questions.
+Un candidat, lors d’une tentative, associe une proposition comme réponses aux questions.
 
 Un admin peut créer, modifier, publier ou supprimer des quiz.
