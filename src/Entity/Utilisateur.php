@@ -148,9 +148,11 @@ class Utilisateur implements UserInterface, PasswordAuthenticatedUserInterface
     {
         if ($this->tentatives->removeElement($tentative)) {
             if ($tentative->getUtilisateur() === $this) {
-                throw new \LogicException();
+                $tentative->setUtilisateur(null);
             }
         }
+
         return $this;
     }
+
 }

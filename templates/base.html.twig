@@ -23,18 +23,40 @@
   </head>
 
   <body>
-    {% block navigation %}
-    <nav class="navbar navbar-custom px-3 py-2">
-      <div class="container-fluid d-flex justify-content-end">
-        {% set route = app.request.attributes.get('_route') %}
-        {% if route == 'app_quiz_liste' %}
-          <a href="{{ path('accueil_list_niveaux') }}" class="btn btn-outline-turquoise btn-sm">
-            Changer de niveau
-          </a>
-        {% endif %}
-      </div>
-    </nav>
-    {% endblock %}
+{% block navigation %}
+<nav class="navbar navbar-custom px-3 py-2">
+  <div class="container-fluid d-flex justify-content-between align-items-center">
+
+    <!-- Zone gauche : bouton Accueil -->
+    <a href="{{ path('accueil_welcome') }}" class="btn btn-outline-turquoise btn-sm">
+      🏠 Accueil
+    </a>
+
+    <!-- Zone droite : boutons utilisateur -->
+    <div>
+      {% if app.user %}
+        <a href="{{ path('utilisateur_activity') }}" class="btn btn-outline-turquoise btn-sm me-2">
+          Voir mon activité
+        </a>
+        <a href="{{ path('app_logout') }}" class="btn btn-outline-turquoise btn-sm me-2">
+          Se déconnecter
+        </a>
+      {% else %}
+        <a href="{{ path('app_login') }}" class="btn btn-outline-turquoise btn-sm me-2">
+          Se connecter
+        </a>
+      {% endif %}
+
+      {% set route = app.request.attributes.get('_route') %}
+      {% if route == 'app_quiz_liste' %}
+        <a href="{{ path('accueil_list_niveaux') }}" class="btn btn-outline-turquoise btn-sm">
+          Changer de niveau
+        </a>
+      {% endif %}
+    </div>
+  </div>
+</nav>
+{% endblock %}
 
     <div class="container mt-4">
       {% block body %}{% endblock %}

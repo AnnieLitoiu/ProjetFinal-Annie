@@ -19,13 +19,4 @@
          class="img-fluid" 
          style="max-width: 480px;">
 </div>
-{{ dump (app.user)}}
-Quiz déjà faits par {{ app.user.email }}
-
-
-
-{% for tentative in app.user.tentatives %}
-    {{ tentative.pourcentage }}
-{% endfor %} 
-
 {% endblock %}

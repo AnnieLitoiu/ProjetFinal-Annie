@@ -191,7 +191,7 @@ class Tentative
         return $this->utilisateur;
     }
 
-    public function setUtilisateur(Utilisateur $utilisateur): static
+    public function setUtilisateur(?Utilisateur $utilisateur): static
     {
         $this->utilisateur = $utilisateur;
 
