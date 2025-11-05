@@ -11,6 +11,12 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[IsGranted('ROLE_USER')]
 final class AccueilController extends AbstractController
 {
+    #[Route('/', name: 'app_home_redirect')]
+    public function homeRedirect(): Response
+    {
+        return $this->redirectToRoute('accueil_welcome');
+    }
+
     #[Route('/accueil/welcome', name: 'accueil_welcome')]
     public function index(): Response
     { 

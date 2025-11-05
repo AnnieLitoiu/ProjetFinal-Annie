@@ -6,6 +6,7 @@ use Faker;
 use Doctrine\Persistence\ObjectManager;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use App\Entity\Tentative as TentativeEntity;
+use App\Entity\Utilisateur;
 use Doctrine\Common\DataFixtures\DependentFixtureInterface;
 use App\Repository\TentativeRepository;
 
@@ -21,7 +22,7 @@ class TentativeFixtures extends Fixture implements DependentFixtureInterface
             throw new \RuntimeException('No quizzes found. Please load Quiz fixtures first.');
         }
 
-        for ($i = 0; $i < 5; $i++) {
+        for ($i = 0; $i < 25; $i++) {
             $tentative = new TentativeEntity();
             $tentative->setMaxTentatives(TentativeRepository::MAX_TENTATIVES);
             $tentative->setDateDebut($faker->dateTime);
@@ -33,6 +34,11 @@ class TentativeFixtures extends Fixture implements DependentFixtureInterface
             $tentative->setNonRepondues($faker->randomDigit);
             $tentative->setPourcentage($faker->randomDigit);
             $tentative->setReponsesUtilisateur([$faker->randomDigit()]);
+
+            // fixer l'user pour la tentative
+            // $this->addReference("utilisateur" . $i, $utilisateur);
+
+            $tentative->setUtilisateur($this->getReference("utilisateur" . rand(1,5), Utilisateur::class));
             
             $manager->persist($tentative);
         }

@@ -59,4 +59,6 @@ final class QuizController extends AbstractController
         // Redirection vers la route qui affiche les questions (paginées)
         return $this->redirectToRoute('app_quiz_jouer',['id' => $tentative->getId()]);
     }
+
+
 }
