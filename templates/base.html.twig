@@ -24,6 +24,7 @@
 
   <body>
 {% block navigation %}
+{% set route = app.request.attributes.get('_route') %}
 <nav class="navbar navbar-custom px-3 py-2">
   <div class="container-fluid d-flex justify-content-between align-items-center">
 
@@ -42,12 +43,13 @@
           Se déconnecter
         </a>
       {% else %}
-        <a href="{{ path('app_login') }}" class="btn btn-outline-turquoise btn-sm me-2">
-          Se connecter
-        </a>
+        {% if route not in ['app_login', 'app_register'] %}
+          <a href="{{ path('app_login') }}" class="btn btn-outline-turquoise btn-sm me-2">
+            Se connecter
+          </a>
+        {% endif %}
       {% endif %}
 
-      {% set route = app.request.attributes.get('_route') %}
       {% if route == 'app_quiz_liste' %}
         <a href="{{ path('accueil_list_niveaux') }}" class="btn btn-outline-turquoise btn-sm">
           Changer de niveau
