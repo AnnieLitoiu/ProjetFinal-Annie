@@ -3,6 +3,13 @@
 {% block title %}Hello AccueilController!{% endblock %}
 
 {% block body %}
+    {# ✅ Messages flash de succès (affichés après l'inscription, par exemple) #}
+    {% for message in app.flashes('success') %}
+        <div class="alert alert-success" role="alert">
+            {{ message }}
+        </div>
+    {% endfor %}
+
 <div class="text-center mt-5">
     <h1>Bienvenue sur QuizMaster!</h1>
     <br>
