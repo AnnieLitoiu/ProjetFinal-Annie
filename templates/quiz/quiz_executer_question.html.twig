@@ -1,92 +1,92 @@
 {% extends "base.html.twig" %}
 
-{% block title %}Questions
-{% endblock %}
+{% block title %}Questions{% endblock %}
 
 {% block body %}
 
-	<div class="d-flex justify-content-between align-items-center mb-3">
-		<div>Question
-			{{ questionNumber }}
-			{% if totalQuestions is defined %}/{{ totalQuestions }}
-			{% endif %}
-		</div>
-		{% if finTimestamp is defined and finTimestamp %}
-			<div id="timer" data-fin="{{ finTimestamp }}" class="fw-semibold">Temps restant: —:—</div>
-		{% endif %}
-	</div>
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+      Question {{ questionNumber }}
+      {% if totalQuestions is defined %}/{{ totalQuestions }}{% endif %}
+    </div>
 
-	<script>
-		(function () {
-const el = document.getElementById('timer');
-if (! el) 
-return;
+    {% if finTimestamp is defined and finTimestamp %}
+      <div id="timer" data-fin="{{ finTimestamp }}" class="fw-semibold">
+        Temps restant: —:—
+      </div>
+    {% endif %}
+  </div>
 
-const finSec = parseInt(el.dataset.fin, 10);
-if (! finSec) 
-return;
+  <script>
+    (function () {
+      const el = document.getElementById('timer');
+      if (!el) return;
 
-const fin = finSec * 1000;
-const terminerUrl = "{{ path('app_quiz_terminer', {id: tentative.id}) }}";
-const tick = () => {
-const ms = fin - Date.now();
-if (ms <= 0) {
-window.location.replace(terminerUrl);
-return;
-}
-const s = Math.floor(ms / 1000);
-const m = Math.floor(s / 60),
-r = s % 60;
-el.textContent = 'Temps restant: ' + String(m).padStart(2, '0') + ':' + String(r).padStart(2, '0');
-};
-tick();
-setInterval(tick, 1000);
-})();
-	</script>
+      const finSec = parseInt(el.dataset.fin, 10);
+      if (!finSec) return;
 
-	<div
-		class="questions">
-		{# 1 question/page via KnpPaginator #}
-		{% for question in questions %}
-			<h5 class="mb-3">
-				Question
-				{{ questionNumber }}
-				—
-				{{ question.enonce }}
-			</h5>
+      const fin = finSec * 1000;
+      const terminerUrl = "{{ path('app_quiz_terminer', {id: tentative.id}) }}";
 
-			{# Formulaire: submit => enregistre puis redirige #}
-			{{ form_start(formReponse) }}
-			{{ form_errors(formReponse) }}
+      const tick = () => {
+        const ms = fin - Date.now();
+        if (ms <= 0) {
+          window.location.replace(terminerUrl);
+          return;
+        }
+        const s = Math.floor(ms / 1000);
+        const m = Math.floor(s / 60);
+        const r = s % 60;
+        el.textContent =
+          'Temps restant: ' + String(m).padStart(2, '0') + ':' + String(r).padStart(2, '0');
+      };
 
-			{% for child in formReponse.reponse %}
-				<div class="form-check mb-2">
-					{{ form_widget(child, { attr: { class: 'form-check-input' } }) }}
-					{{ form_label(child, null, { label_attr: { class: 'form-check-label ms-2 mb-0' } }) }}
-					{{ form_errors(child) }}
-				</div>
-			{% endfor %}
+      tick();
+      setInterval(tick, 1000);
+    })();
+  </script>
 
-			<div class="mt-4">
-				<button type="submit" class="btn btn-outline-turquoise btn-sm">
-					{% if estDernierrePage %}
-						Valider la réponse et soumettre le quiz
-					{% else %}
-						Valider la réponse
-					{% endif %}
-				</button>
-			</div>
-			{{ form_end(formReponse) }}
-		{% endfor %}
+  {# ➤ On récupère la seule question de la page (knp paginate = 1 item/page) #}
+  {% set question = questions.items[0] %}
 
-	</div>
+  <div class="questions">
 
-	<div class="navigation mt-4">
-		{{ knp_pagination_render(
-    questions,
-    '@KnpPaginator/Pagination/bootstrap_v5_pagination.html.twig',
-    {},
-    { show_numbers: false }
-  ) }}
-	</div>
+    <h5 class="mb-3">
+      {{ question.enonce }}
+    </h5>
+
+    {{ form_start(formReponse) }}
+    {{ form_errors(formReponse) }}
+
+    {% for child in formReponse.reponse %}
+      <div class="form-check mb-2">
+        {{ form_widget(child, { attr: { class: 'form-check-input' } }) }}
+        {{ form_label(child, null, { label_attr: { class: 'form-check-label ms-2 mb-0' } }) }}
+        {{ form_errors(child) }}
+      </div>
+    {% endfor %}
+
+    <div class="mt-4">
+      <button type="submit" class="btn btn-outline-turquoise btn-sm">
+        {% if estDernierrePage %}
+          Valider la réponse et soumettre le quiz
+        {% else %}
+          Valider la réponse
+        {% endif %}
+      </button>
+    </div>
+
+    {{ form_end(formReponse) }}
+
+  </div>
+
+  <div class="navigation mt-4">
+    {{ knp_pagination_render(
+      questions,
+      '@KnpPaginator/Pagination/bootstrap_v5_pagination.html.twig',
+      {},
+      { show_numbers: false }
+    ) }}
+  </div>
+
 {% endblock %}

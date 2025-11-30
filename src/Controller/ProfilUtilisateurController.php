@@ -20,7 +20,7 @@ final class ProfilUtilisateurController extends AbstractController
         // grâce à ta relation OneToMany
         $tentatives = $utilisateur->getTentatives();
 
-        return $this->render('profil_utilisateur/activity.html.twig', [
+        return $this->render('profil_utilisateur/mon_activite.html.twig', [
             'tentatives' => $tentatives,
             'utilisateur' => $utilisateur,
         ]);

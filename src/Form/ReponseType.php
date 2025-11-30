@@ -23,6 +23,7 @@ class ReponseType extends AbstractType
                 'expanded' => true,
                 'multiple' => false,
                 'mapped'   => false, 
+                'required' => true,
                 'attr' => ['class' => 'choice-item'],
                 'row_attr' => ['class' => 'choice-group']
             ])

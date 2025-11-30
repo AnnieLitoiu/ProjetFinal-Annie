@@ -16,7 +16,6 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 final class QuestionsController extends AbstractController
 {
     #[Route('/quiz/jouer/{id}', name: 'app_quiz_jouer')]
-
     public function executerQuestion(
         Request $req,
         TentativeRepository $rep,
@@ -30,26 +29,31 @@ final class QuestionsController extends AbstractController
 
         $session = $req->getSession();
         $idsSelection = $session->get('quiz_question_ids' . $idTentative, []);
+
         if (!empty($idsSelection)) {
             $nbQuestions = count($idsSelection);
+
             if ($page < 1) {
                 $page = 1;
             }
             if ($page > $nbQuestions) {
                 return $this->redirectToRoute('app_quiz_terminer', ['id' => $idTentative]);
             }
+
             $requeteQuestions = $questionRepo->requeteParIdsAvecOrdre($idsSelection);
         } else {
             $nbQuestions = $questionRepo->compterParQuizId($tentative->getQuiz()->getId());
             if ($nbQuestions === 0) {
                 return $this->redirectToRoute('app_quiz_terminer', ['id' => $idTentative]);
             }
+
             if ($page < 1) {
                 $page = 1;
             }
             if ($page > $nbQuestions) {
                 return $this->redirectToRoute('app_quiz_terminer', ['id' => $idTentative]);
             }
+
             $requeteQuestions = $questionRepo->requeteParQuizId($tentative->getQuiz()->getId());
         }
 
@@ -69,9 +73,9 @@ final class QuestionsController extends AbstractController
         $formReponse = $this->createForm(ReponseType::class, null, ['question' => $questionCourante]);
         $formReponse->handleRequest($req);
 
-        // Si on a validé la réponse, on enregistre puis on redirige. PRG (Post/Redirect/Get)
+        // Si on a validé la réponse, on enregistre puis on redirige (PRG)
         if ($formReponse->isSubmitted() && $formReponse->isValid()) {
-            $reponseChoisie = $formReponse->get('reponse')->getData();
+            $reponseChoisie = $formReponse->get('reponse')->getData(); // peut être null si question non répondue
 
             // Lecture des réponses en session, clés isolées par tentative
             $session = $req->getSession();
@@ -79,22 +83,32 @@ final class QuestionsController extends AbstractController
             $reponses = $session->get($cleSession, []);
 
             // On mémorise la réponse pour cette question (index courant)
-            $reponses[$indexQuestion] = [
-                'id_question'        => $questionCourante->getId(),
-                'id_reponse_choisie' => $reponseChoisie->getId(),
-                'est_correcte'       => $reponseChoisie->isEstCorrecte(),
-            ];
+            if ($reponseChoisie === null) {
+                // Question non répondue (skip)
+                $reponses[$indexQuestion] = [
+                    'id_question'        => $questionCourante->getId(),
+                    'id_reponse_choisie' => null,
+                    'est_correcte'       => false,
+                ];
+            } else {
+                // Réponse choisie normalement
+                $reponses[$indexQuestion] = [
+                    'id_question'        => $questionCourante->getId(),
+                    'id_reponse_choisie' => $reponseChoisie->getId(),
+                    'est_correcte'       => $reponseChoisie->isEstCorrecte(),
+                ];
+            }
+
             $session->set($cleSession, $reponses);
 
             // Redirection automatique :
-            // - Si ce n'est pas la dernière question -> page suivante
-            // - Sinon -> page de fin
             if (!$estDernierrePage) {
                 return $this->redirectToRoute('app_quiz_jouer', [
                     'id'   => $idTentative,
                     'page' => $page + 1,
                 ]);
             }
+
             return $this->redirectToRoute('app_quiz_terminer', ['id' => $idTentative]);
         }
 
@@ -104,13 +118,13 @@ final class QuestionsController extends AbstractController
         }
 
         $vars = [
-            'questions' => $pagination,
-            'formReponse' => $formReponse,
-            'questionNumber' => $page,
-            'totalQuestions' => $nbQuestions,
+            'questions'        => $pagination,
+            'formReponse'      => $formReponse,
+            'questionNumber'   => $page,
+            'totalQuestions'   => $nbQuestions,
             'estDernierrePage' => $estDernierrePage,
-            'tentative' => $tentative,
-            'finTimestamp' => $finTimestamp,
+            'tentative'        => $tentative,
+            'finTimestamp'     => $finTimestamp,
         ];
 
         return $this->render("quiz/quiz_executer_question.html.twig", $vars);
@@ -123,30 +137,38 @@ final class QuestionsController extends AbstractController
         QuestionRepository $questionRepo,
     ): Response {
         $idTentative = $req->get('id');
+
         // Récupération de la tentative et des réponses stockées en session
         $tentative = $rep->trouverAvecQuiz($idTentative);
         $session = $req->getSession();
-        $reponses = $session->get('quiz_reponses' . $idTentative, []); // cherche la clé en question ('quiz_reponses' . $idTentative) dans la session. Si tu la trouve pas, envoie un tableau vide [] 
+        $reponses = $session->get('quiz_reponses' . $idTentative, []);
 
         // Comptage du total de questions (pour calcul de pourcentage)
         $choisi = $tentative->getNombreQuestions();
         $totalQuestionsQuiz = max(1, ($choisi ?? $questionRepo->compterParQuizId($tentative->getQuiz()->getId())));
+
         $reponsesCorrectes = 0;
 
-        // Parcourt des réponses enregistrées pour calculer le pourcentage
+        // Nombre de réponses données = nombre d’entrées enregistrées
+        $reponsesDonnees = count($reponses);
+
+        // Parcourt des réponses pour compter les bonnes
         foreach ($reponses as $reponse) {
             if (!empty($reponse['est_correcte'])) {
                 $reponsesCorrectes++;
             }
         }
-        // Calcul du pourcentage 
-        $diviseur = max(1, $totalQuestionsQuiz);
+
+        // Calcul du pourcentage
+        $diviseur    = max(1, $totalQuestionsQuiz);
         $pourcentage = round(($reponsesCorrectes / $diviseur) * 100, 2);
 
-        // Nombre de réponses données / non répondues
-        $reponsesDonnees = count($reponses);
+        // Mauvaises / non répondues
         $reponsesMauvaises = max(0, $reponsesDonnees - $reponsesCorrectes);
-        $nonRepondues = max(0, $totalQuestionsQuiz - $reponsesDonnees);
+        $nonRepondues      = max(0, $totalQuestionsQuiz - $reponsesDonnees);
+
+
+        // Sauvegarde de la tentative
         $rep->finirTentative(
             $reponsesCorrectes,
             $reponsesMauvaises,
@@ -156,10 +178,17 @@ final class QuestionsController extends AbstractController
             $reponses,
             $tentative
         );
+
+        // Nettoyage de la session
         $session->remove('quiz_reponses' . $idTentative);
         $session->remove('quiz_question_ids' . $idTentative);
+
+        // Construction des détails pour l’écran de résultat
         $details = [];
-        $questions = $questionRepo->requeteParQuizId($tentative->getQuiz()->getId())->getResult();
+        $questions = $questionRepo
+            ->requeteParQuizId($tentative->getQuiz()->getId())
+            ->getResult();
+
         $mapReponses = [];
         foreach ($reponses as $r) {
             $mapReponses[$r['id_question']] = $r;
@@ -167,7 +196,7 @@ final class QuestionsController extends AbstractController
 
         $numero = 1;
         foreach ($questions as $q) {
-            $qid = $q->getId();
+            $qid  = $q->getId();
             $user = $mapReponses[$qid] ?? null;
 
             $bonneRep = null;
@@ -179,27 +208,31 @@ final class QuestionsController extends AbstractController
             }
 
             $details[] = [
-                'numero'         => $numero++,
-                'intitule'       => $q->getEnonce(),
-                'votre_reponse'  => $user ? ($q->getReponses()
-                    ->filter(fn($r) => $r->getId() === $user['id_reponse_choisie'])
-                    ->first()?->getTexte()) : null,
-                'bonne_reponse'  => $bonneRep?->getTexte(),
-                'est_correcte'   => $user['est_correcte'] ?? false,
-                'est_skip'       => $user === null,
+                'numero'        => $numero++,
+                'intitule'      => $q->getEnonce(),
+                'votre_reponse' => $user && !empty($user['id_reponse_choisie'])
+                    ? $q->getReponses()
+                        ->filter(fn($r) => $r->getId() === $user['id_reponse_choisie'])
+                        ->first()?->getTexte()
+                    : null,
+                'bonne_reponse' => $bonneRep?->getTexte(),
+                'est_correcte'  => $user['est_correcte'] ?? false,
             ];
+
         }
+
         $duration = $tentative->formatDuration();
+
         $vars = [
-            'tentative'           => $tentative,
-            'reponses_correctes'  => $reponsesCorrectes,
-            'reponses_mauvaises'  => $reponsesMauvaises,
-            'total_questions'     => $totalQuestionsQuiz,
-            'pourcentage'         => $pourcentage,
-            'reponses_donnees'    => $reponsesDonnees,
-            'non_repondues'       => $nonRepondues,
-            'reponses_details'    => $details,
-            'temps_ecoule_label'  => $duration['label'],
+            'tentative'             => $tentative,
+            'reponses_correctes'    => $reponsesCorrectes,
+            'reponses_mauvaises'    => $reponsesMauvaises,
+            'total_questions'       => $totalQuestionsQuiz,
+            'pourcentage'           => $pourcentage,
+            'reponses_donnees'      => $reponsesDonnees,
+            'non_repondues'         => $nonRepondues,
+            'reponses_details'      => $details,
+            'temps_ecoule_label'    => $duration['label'],
             'temps_ecoule_secondes' => $duration['seconds'],
         ];
 
