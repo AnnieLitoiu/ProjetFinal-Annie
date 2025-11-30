@@ -54,6 +54,20 @@ class Tentative
     #[ORM\Column(nullable: true)]
     private ?int $tempsAlloueSecondes = null;
 
+    #[ORM\Column(type: 'json', nullable: true)]
+    private ?array $questionIds = null;
+
+    public function getQuestionIds(): ?array
+    {
+        return $this->questionIds ?? [];
+    }
+
+    public function setQuestionIds(?array $questionIds): self
+    {
+        $this->questionIds = $questionIds;
+        return $this;
+    }
+
     public function getId(): ?int
     {
         return $this->id;
@@ -192,7 +206,7 @@ class Tentative
         return ['seconds' => $seconds, 'label' => $label];
     }
 
-    public function getUtilisateur(): Utilisateur
+    public function getUtilisateur(): ?Utilisateur
     {
         return $this->utilisateur;
     }

@@ -7,6 +7,7 @@
 
 body {
     background-color: #ffffff !important;
+    transition: none !important;
     color: hsla(180, 100%, 24.9%, 0.9);
 }
 

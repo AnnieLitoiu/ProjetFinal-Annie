@@ -11,6 +11,7 @@ use Symfony\Component\Routing\Attribute\Route;
 use Knp\Component\Pager\PaginatorInterface;
 use App\Repository\QuestionRepository;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
+use Doctrine\ORM\EntityManagerInterface;
 
 #[IsGranted('ROLE_USER')]
 final class QuestionsController extends AbstractController
@@ -129,7 +130,8 @@ final class QuestionsController extends AbstractController
     public function terminerQuiz(
         Request $req,
         TentativeRepository $rep,
-        QuestionRepository $questionRepo
+        QuestionRepository $questionRepo,
+        EntityManagerInterface $entityManager
     ): Response {
         $idTentative = $req->get('id');
 
@@ -174,20 +176,29 @@ final class QuestionsController extends AbstractController
         );
 
         // Construction des détails des réponses AVANT de nettoyer la session
-        $details = [];
 
-        if (!empty($idsSelection)) {
+        // Nouvelle logique Windsurf : on récupère d'abord les IDs de questions à partir
+        // de la session, ou depuis la tentative si la session est vide.
+        $questionIds = !empty($idsSelection) ? $idsSelection : $tentative->getQuestionIds();
+
+        if (!empty($questionIds)) {
             // On récupère uniquement les questions tirées au sort pour ce quiz
             $questions = $questionRepo->findBy([
-                'id' => $idsSelection,
+                'id' => $questionIds,
             ]);
         } else {
             // Fallback : toutes les questions du quiz (cas ancien ou sans sélection)
             $questions = $questionRepo
                 ->requeteParQuizId($tentative->getQuiz()->getId())
                 ->getResult();
-}
+        }
 
+        // On enregistre les IDs de questions sur la tentative avant de nettoyer la session
+        $tentative->setQuestionIds($idsSelection);
+        $entityManager->persist($tentative);
+        $entityManager->flush();
+
+        $details = [];
 
         $mapReponses = [];
         foreach ($reponses as $r) {

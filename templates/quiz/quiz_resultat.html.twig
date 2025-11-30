@@ -39,8 +39,7 @@
 {% block body %}
 
 {# Nombre de questions réellement jouées #}
-{% set nbQuestions = tentative.nombreQuestions ?? tentative.nbQuestions ?? total_questions %}
-
+{% set nbQuestions = (tentative.questionIds|default([])|length > 0) ? tentative.questionIds|length : (tentative.nombreQuestions ?? tentative.nbQuestions ?? total_questions) %}
 {# Couleur du badge #}
 {% set badgeClass = pourcentage >= 80 ? 'bg-success'
                     : (pourcentage >= 50 ? 'bg-warning' : 'bg-danger') %}
