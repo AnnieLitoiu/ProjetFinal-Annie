@@ -112,8 +112,7 @@
 
     {% if reponses_details is defined and reponses_details|length > 0 %}
       <div class="list-group list-group-flush">
-        {# On limite à nbQuestions #}
-        {% for item in reponses_details|slice(0, nbQuestions) %}
+        {% for item in reponses_details %}
           {% set state = item.est_correcte ? 'is-correct' : 'is-wrong' %}
 
           <div class="list-group-item py-3 answer-item {{ state }}">

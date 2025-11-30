@@ -69,47 +69,42 @@ final class QuestionsController extends AbstractController
         // Indique si on se trouve sur la dernière page (dernière question)
         $estDernierrePage = ($indexQuestion === $nbQuestions - 1);
 
-        // Création du formulaire de réponse pour la question courante
-        $formReponse = $this->createForm(ReponseType::class, null, ['question' => $questionCourante]);
+        // Formulaire de réponse pour la question courante
+        $formReponse = $this->createForm(ReponseType::class, null, [
+            'question' => $questionCourante,
+        ]);
         $formReponse->handleRequest($req);
 
-        // Si on a validé la réponse, on enregistre puis on redirige (PRG)
         if ($formReponse->isSubmitted() && $formReponse->isValid()) {
-            $reponseChoisie = $formReponse->get('reponse')->getData(); // peut être null si question non répondue
+            $reponseChoisie = $formReponse->get('reponse')->getData();
 
-            // Lecture des réponses en session, clés isolées par tentative
-            $session = $req->getSession();
-            $cleSession = 'quiz_reponses' . $idTentative;
-            $reponses = $session->get($cleSession, []);
-
-            // On mémorise la réponse pour cette question (index courant)
+            // Sécurité : normalement ce n'est jamais null (required=true)
             if ($reponseChoisie === null) {
-                // Question non répondue (skip)
-                $reponses[$indexQuestion] = [
-                    'id_question'        => $questionCourante->getId(),
-                    'id_reponse_choisie' => null,
-                    'est_correcte'       => false,
-                ];
+                $this->addFlash('warning', 'Merci de choisir une réponse avant de valider.');
             } else {
-                // Réponse choisie normalement
+                // Lecture / mise à jour des réponses en session
+                $session = $req->getSession();
+                $cleSession = 'quiz_reponses' . $idTentative;
+                $reponses = $session->get($cleSession, []);
+
                 $reponses[$indexQuestion] = [
                     'id_question'        => $questionCourante->getId(),
                     'id_reponse_choisie' => $reponseChoisie->getId(),
                     'est_correcte'       => $reponseChoisie->isEstCorrecte(),
                 ];
+
+                $session->set($cleSession, $reponses);
+
+                // Page suivante ou fin du quiz
+                if (!$estDernierrePage) {
+                    return $this->redirectToRoute('app_quiz_jouer', [
+                        'id'   => $idTentative,
+                        'page' => $page + 1,
+                    ]);
+                }
+
+                return $this->redirectToRoute('app_quiz_terminer', ['id' => $idTentative]);
             }
-
-            $session->set($cleSession, $reponses);
-
-            // Redirection automatique :
-            if (!$estDernierrePage) {
-                return $this->redirectToRoute('app_quiz_jouer', [
-                    'id'   => $idTentative,
-                    'page' => $page + 1,
-                ]);
-            }
-
-            return $this->redirectToRoute('app_quiz_terminer', ['id' => $idTentative]);
         }
 
         $finTimestamp = null;
@@ -127,46 +122,45 @@ final class QuestionsController extends AbstractController
             'finTimestamp'     => $finTimestamp,
         ];
 
-        return $this->render("quiz/quiz_executer_question.html.twig", $vars);
+        return $this->render('quiz/quiz_executer_question.html.twig', $vars);
     }
 
     #[Route('/quiz/terminer/{id}', name: 'app_quiz_terminer')]
     public function terminerQuiz(
         Request $req,
         TentativeRepository $rep,
-        QuestionRepository $questionRepo,
+        QuestionRepository $questionRepo
     ): Response {
         $idTentative = $req->get('id');
 
-        // Récupération de la tentative et des réponses stockées en session
+        // Récupérer la tentative + données de session
         $tentative = $rep->trouverAvecQuiz($idTentative);
         $session = $req->getSession();
         $reponses = $session->get('quiz_reponses' . $idTentative, []);
+        $idsSelection = $session->get('quiz_question_ids' . $idTentative, []);
 
-        // Comptage du total de questions (pour calcul de pourcentage)
+        // Total de questions (5 / 10 / 15 ou toutes les questions)
         $choisi = $tentative->getNombreQuestions();
-        $totalQuestionsQuiz = max(1, ($choisi ?? $questionRepo->compterParQuizId($tentative->getQuiz()->getId())));
+        $totalQuestionsQuiz = max(
+            1,
+            ($choisi ?? $questionRepo->compterParQuizId($tentative->getQuiz()->getId()))
+        );
 
+        // Statistiques
+        $reponsesDonnees   = count($reponses);
         $reponsesCorrectes = 0;
 
-        // Nombre de réponses données = nombre d’entrées enregistrées
-        $reponsesDonnees = count($reponses);
-
-        // Parcourt des réponses pour compter les bonnes
         foreach ($reponses as $reponse) {
             if (!empty($reponse['est_correcte'])) {
                 $reponsesCorrectes++;
             }
         }
 
-        // Calcul du pourcentage
         $diviseur    = max(1, $totalQuestionsQuiz);
         $pourcentage = round(($reponsesCorrectes / $diviseur) * 100, 2);
 
-        // Mauvaises / non répondues
         $reponsesMauvaises = max(0, $reponsesDonnees - $reponsesCorrectes);
         $nonRepondues      = max(0, $totalQuestionsQuiz - $reponsesDonnees);
-
 
         // Sauvegarde de la tentative
         $rep->finirTentative(
@@ -179,15 +173,21 @@ final class QuestionsController extends AbstractController
             $tentative
         );
 
-        // Nettoyage de la session
-        $session->remove('quiz_reponses' . $idTentative);
-        $session->remove('quiz_question_ids' . $idTentative);
-
-        // Construction des détails pour l’écran de résultat
+        // Construction des détails des réponses AVANT de nettoyer la session
         $details = [];
-        $questions = $questionRepo
-            ->requeteParQuizId($tentative->getQuiz()->getId())
-            ->getResult();
+
+        if (!empty($idsSelection)) {
+            // On récupère uniquement les questions tirées au sort pour ce quiz
+            $questions = $questionRepo->findBy([
+                'id' => $idsSelection,
+            ]);
+        } else {
+            // Fallback : toutes les questions du quiz (cas ancien ou sans sélection)
+            $questions = $questionRepo
+                ->requeteParQuizId($tentative->getQuiz()->getId())
+                ->getResult();
+}
+
 
         $mapReponses = [];
         foreach ($reponses as $r) {
@@ -200,9 +200,9 @@ final class QuestionsController extends AbstractController
             $user = $mapReponses[$qid] ?? null;
 
             $bonneRep = null;
-            foreach ($q->getReponses() as $r) {
-                if ($r->isEstCorrecte()) {
-                    $bonneRep = $r;
+            foreach ($q->getReponses() as $repQ) {
+                if ($repQ->isEstCorrecte()) {
+                    $bonneRep = $repQ;
                     break;
                 }
             }
@@ -218,8 +218,11 @@ final class QuestionsController extends AbstractController
                 'bonne_reponse' => $bonneRep?->getTexte(),
                 'est_correcte'  => $user['est_correcte'] ?? false,
             ];
-
         }
+
+        // Nettoyage de la session une fois qu'on a tout utilisé
+        $session->remove('quiz_reponses' . $idTentative);
+        $session->remove('quiz_question_ids' . $idTentative);
 
         $duration = $tentative->formatDuration();
 
@@ -236,6 +239,6 @@ final class QuestionsController extends AbstractController
             'temps_ecoule_secondes' => $duration['seconds'],
         ];
 
-        return $this->render("quiz/quiz_resultat.html.twig", $vars);
+        return $this->render('quiz/quiz_resultat.html.twig', $vars);
     }
 }
