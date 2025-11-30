@@ -2,72 +2,109 @@
     --turquoise: #007f7f;
     --turquoise-dark: #005f5f;
     --turquoise-verylight: #e0f7f7;
-  }
-  
-  body {
+    --focus: #ffbf47;
+}
+
+body {
     background-color: #ffffff !important;
     color: hsla(180, 100%, 24.9%, 0.9);
-  }
-  
-  a {
+}
+
+a {
     color: #000;
     text-decoration: none;
-  }
-  a:hover {
+}
+a:hover {
     text-decoration: underline;
-  }
-  
-  h1, h2, h3, h4, h5, h6 {
+}
+a:focus-visible,
+button:focus-visible,
+.btn:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+    outline: 3px solid var(--focus);
+    outline-offset: 2px;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
     color: var(--turquoise);
-  }
-  
-  .navbar-custom {
+}
+
+.navbar-custom {
     background-color: var(--turquoise-verylight);
     border-bottom: 1px solid var(--turquoise);
-  }
-  
-  .btn-turquoise {
+}
+
+.btn-turquoise {
     background-color: var(--turquoise);
     color: #fff;
     border: none;
-  }
-  .btn-turquoise:hover {
+}
+.btn-turquoise:hover {
     background-color: var(--turquoise-dark);
     color: #fff;
-  }
-  
-  .btn-outline-turquoise {
+}
+
+.btn-outline-turquoise {
     color: var(--turquoise);
     border: 1px solid var(--turquoise);
     background-color: transparent;
-  }
+}
 
-  .btn-outline-turquoise:hover {
+.btn-outline-turquoise:hover {
     background-color: var(--turquoise);
     color: #fff;
-  }
-  
-  .img-center {
+}
+
+/* Utility: visually hidden but accessible */
+.visually-hidden {
+    position: absolute !important;
+    width: 1px !important;
+    height: 1px !important;
+    padding: 0 !important;
+    margin: -1px !important;
+    overflow: hidden !important;
+    clip: rect(0, 0, 0, 0) !important;
+    white-space: nowrap !important;
+    border: 0 !important;
+}
+
+.img-center {
     display: block !important;
     margin-left: auto !important;
     margin-right: auto !important;
     float: none !important;
     max-width: 100%;
     height: auto;
-  }
-  
-  .choice-item label {
+}
+
+.choice-item label {
     display: inline-block;
     margin-right: 10px;
-  }
+}
 
-  .choice-item input {
+.choice-item input {
     margin-bottom: 4px;
-  }
+}
 
-  .choice-group {
+.choice-group {
     display: block;
-  }
-  
+}
 
-  
+/* Tables on small screens */
+@media (max-width: 576px) {
+    .table td,
+    .table th {
+        padding: 0.5rem;
+    }
+    .btn {
+        padding: 0.25rem 0.5rem;
+        font-size: 0.875rem;
+    }
+}

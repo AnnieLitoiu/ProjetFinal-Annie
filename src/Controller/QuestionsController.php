@@ -14,34 +14,45 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[IsGranted('ROLE_USER')]
 final class QuestionsController extends AbstractController
-{   
+{
     #[Route('/quiz/jouer/{id}', name: 'app_quiz_jouer')]
-    
+
     public function executerQuestion(
         Request $req,
         TentativeRepository $rep,
         QuestionRepository $questionRepo,
         PaginatorInterface $paginator
-    ): Response
-    {
+    ): Response {
         $idTentative = $req->get('id');
-        // Récupère la tentative en cours et les questions du quiz
         $tentative = $rep->trouverAvecQuiz($idTentative);
 
-        // Numéro de page courante (?page=...), par défaut 1
         $page = $req->query->getInt('page', 1);
 
-        $nbQuestions = $questionRepo->compterParQuizId($tentative->getQuiz()->getId());
-        if ($nbQuestions === 0) {
-             return $this->redirectToRoute('app_quiz_terminer', ['id' => $idTentative]);
-        }
-        if ($page < 1) { $page = 1; }
-        if ($page > $nbQuestions) { 
-            return $this->redirectToRoute('app_quiz_terminer', ['id' => $idTentative]);
+        $session = $req->getSession();
+        $idsSelection = $session->get('quiz_question_ids' . $idTentative, []);
+        if (!empty($idsSelection)) {
+            $nbQuestions = count($idsSelection);
+            if ($page < 1) {
+                $page = 1;
+            }
+            if ($page > $nbQuestions) {
+                return $this->redirectToRoute('app_quiz_terminer', ['id' => $idTentative]);
+            }
+            $requeteQuestions = $questionRepo->requeteParIdsAvecOrdre($idsSelection);
+        } else {
+            $nbQuestions = $questionRepo->compterParQuizId($tentative->getQuiz()->getId());
+            if ($nbQuestions === 0) {
+                return $this->redirectToRoute('app_quiz_terminer', ['id' => $idTentative]);
+            }
+            if ($page < 1) {
+                $page = 1;
+            }
+            if ($page > $nbQuestions) {
+                return $this->redirectToRoute('app_quiz_terminer', ['id' => $idTentative]);
+            }
+            $requeteQuestions = $questionRepo->requeteParQuizId($tentative->getQuiz()->getId());
         }
 
-        // Pagination sur la collection de questions (1 question par page)
-        $requeteQuestions = $questionRepo->requeteParQuizId($tentative->getQuiz()->getId());
         $pagination = $paginator->paginate($requeteQuestions, $page, 1);
 
         // Index de la question dans le tableau (0-based)
@@ -85,14 +96,21 @@ final class QuestionsController extends AbstractController
                 ]);
             }
             return $this->redirectToRoute('app_quiz_terminer', ['id' => $idTentative]);
-    }
+        }
 
-    $vars = [
-        'questions' => $pagination,
-        'formReponse' => $formReponse,
-        'questionNumber' => $page,
-        'estDernierrePage' => $estDernierrePage,
-        'tentative' => $tentative
+        $finTimestamp = null;
+        if ($tentative->getTempsAlloueSecondes()) {
+            $finTimestamp = $tentative->getDateDebut()->getTimestamp() + (int) $tentative->getTempsAlloueSecondes();
+        }
+
+        $vars = [
+            'questions' => $pagination,
+            'formReponse' => $formReponse,
+            'questionNumber' => $page,
+            'totalQuestions' => $nbQuestions,
+            'estDernierrePage' => $estDernierrePage,
+            'tentative' => $tentative,
+            'finTimestamp' => $finTimestamp,
         ];
 
         return $this->render("quiz/quiz_executer_question.html.twig", $vars);
@@ -103,8 +121,7 @@ final class QuestionsController extends AbstractController
         Request $req,
         TentativeRepository $rep,
         QuestionRepository $questionRepo,
-    ): Response
-    {
+    ): Response {
         $idTentative = $req->get('id');
         // Récupération de la tentative et des réponses stockées en session
         $tentative = $rep->trouverAvecQuiz($idTentative);
@@ -112,13 +129,13 @@ final class QuestionsController extends AbstractController
         $reponses = $session->get('quiz_reponses' . $idTentative, []); // cherche la clé en question ('quiz_reponses' . $idTentative) dans la session. Si tu la trouve pas, envoie un tableau vide [] 
 
         // Comptage du total de questions (pour calcul de pourcentage)
-        $totalquestions = $questionRepo->compterParQuizId($tentative->getQuiz()->getId());
-        $totalQuestionsQuiz = max(1, $totalquestions);
+        $choisi = $tentative->getNombreQuestions();
+        $totalQuestionsQuiz = max(1, ($choisi ?? $questionRepo->compterParQuizId($tentative->getQuiz()->getId())));
         $reponsesCorrectes = 0;
 
         // Parcourt des réponses enregistrées pour calculer le pourcentage
-        foreach($reponses as $reponse){
-            if (!empty($reponse['est_correcte'])){
+        foreach ($reponses as $reponse) {
+            if (!empty($reponse['est_correcte'])) {
                 $reponsesCorrectes++;
             }
         }
@@ -140,11 +157,12 @@ final class QuestionsController extends AbstractController
             $tentative
         );
         $session->remove('quiz_reponses' . $idTentative);
+        $session->remove('quiz_question_ids' . $idTentative);
         $details = [];
         $questions = $questionRepo->requeteParQuizId($tentative->getQuiz()->getId())->getResult();
         $mapReponses = [];
         foreach ($reponses as $r) {
-            $mapReponses[$r['id_question']] = $r; 
+            $mapReponses[$r['id_question']] = $r;
         }
 
         $numero = 1;
@@ -154,15 +172,18 @@ final class QuestionsController extends AbstractController
 
             $bonneRep = null;
             foreach ($q->getReponses() as $r) {
-                if ($r->isEstCorrecte()) { $bonneRep = $r; break; }
+                if ($r->isEstCorrecte()) {
+                    $bonneRep = $r;
+                    break;
+                }
             }
 
             $details[] = [
                 'numero'         => $numero++,
-                'intitule'       => $q->getEnonce(),                 
+                'intitule'       => $q->getEnonce(),
                 'votre_reponse'  => $user ? ($q->getReponses()
-                                    ->filter(fn($r) => $r->getId() === $user['id_reponse_choisie'])
-                                    ->first()?->getTexte()) : null,
+                    ->filter(fn($r) => $r->getId() === $user['id_reponse_choisie'])
+                    ->first()?->getTexte()) : null,
                 'bonne_reponse'  => $bonneRep?->getTexte(),
                 'est_correcte'   => $user['est_correcte'] ?? false,
                 'est_skip'       => $user === null,
@@ -171,17 +192,17 @@ final class QuestionsController extends AbstractController
         $duration = $tentative->formatDuration();
         $vars = [
             'tentative'           => $tentative,
-            'reponses_correctes'  => $reponsesCorrectes, 
-            'reponses_mauvaises'  => $reponsesMauvaises,      
-            'total_questions'     => $totalquestions,             
-            'pourcentage'         => $pourcentage,               
+            'reponses_correctes'  => $reponsesCorrectes,
+            'reponses_mauvaises'  => $reponsesMauvaises,
+            'total_questions'     => $totalQuestionsQuiz,
+            'pourcentage'         => $pourcentage,
             'reponses_donnees'    => $reponsesDonnees,
             'non_repondues'       => $nonRepondues,
             'reponses_details'    => $details,
             'temps_ecoule_label'  => $duration['label'],
             'temps_ecoule_secondes' => $duration['seconds'],
         ];
-    
-        return $this->render ("quiz/quiz_resultat.html.twig", $vars);
+
+        return $this->render("quiz/quiz_resultat.html.twig", $vars);
     }
 }

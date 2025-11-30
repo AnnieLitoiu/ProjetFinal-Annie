@@ -1,20 +1,244 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Hello AdminController!{% endblock %}
+{% block title %}Administration
+{% endblock %}
 
 {% block body %}
-<style>
-    .example-wrapper { margin: 1em auto; max-width: 800px; width: 95%; font: 18px/1.5 sans-serif; }
-    .example-wrapper code { background: #F5F5F5; padding: 2px 6px; }
-</style>
+	<div class="container">
+		<h1 class="mb-4">Administration</h1>
 
-<div class="example-wrapper">
-    <h1>Hello {{ controller_name }}! ✅</h1>
+		{# Vue liste + recherche #}
+		{% if users is defined %}
+			<form method="get" action="{{ path('admin_users') }}" class="row g-2 mb-3">
+				<div class="col-sm-8 col-md-6">
+					<label for="admin-search-q" class="visually-hidden">Rechercher des utilisateurs par email, prénom ou nom</label>
+					<input id="admin-search-q" type="text" name="q" value="{{ q|default('') }}" class="form-control" placeholder="Rechercher par email, prénom ou nom" autocomplete="off"/>
+				</div>
+				<div class="col-auto">
+					<button class="btn btn-turquoise btn-sm" type="submit">Rechercher</button>
+				</div>
+			</form>
 
-    This friendly message is coming from:
-    <ul>
-        <li>Your controller at <code>C:/xampp/htdocs/ProjetFinal-Annie/src/Controller/AdminController.php</code></li>
-        <li>Your template at <code>C:/xampp/htdocs/ProjetFinal-Annie/templates/admin/index.html.twig</code></li>
-    </ul>
-</div>
+			<div class="table-responsive">
+				<table class="table table-sm align-middle">
+					<caption class="visually-hidden">Liste des utilisateurs</caption>
+					<thead>
+						<tr>
+							<th>Email</th>
+							<th>Nom</th>
+							<th>Prénom</th>
+							<th>Rôles</th>
+							<th class="text-end">Actions</th>
+						</tr>
+					</thead>
+					<tbody id="admin-users-tbody">
+						{% for u in users %}
+							<tr>
+								<td>{{ u.email }}</td>
+								<td>{{ u.nom }}</td>
+								<td>{{ u.prenom }}</td>
+								<td>{{ u.roles|join(', ') }}</td>
+								<td class="text-end">
+									<a class="btn btn-outline-turquoise btn-sm me-2" href="{{ path('admin_user_show', {id: u.id}) }}">Voir activité</a>
+									<button type="button" class="btn btn-danger btn-sm btn-delete-user" data-id="{{ u.id }}" data-email="{{ u.email }}" data-action="{{ path('admin_user_delete', {id: u.id}) }}" data-csrf="{{ csrf_token('delete_user_' ~ u.id) }}" data-bs-toggle="modal" data-bs-target="#confirmDeleteModal">
+										Supprimer
+									</button>
+								</td>
+							</tr>
+						{% else %}
+							<tr>
+								<td colspan="5" class="text-center text-muted">Aucun utilisateur trouvé.</td>
+							</tr>
+						{% endfor %}
+					</tbody>
+				</table>
+			</div>
+
+			<div id="search-status" aria-live="polite" aria-atomic="true" class="visually-hidden"></div>
+
+			<script>
+				(function () {
+const input = document.getElementById('admin-search-q');
+const tbody = document.getElementById('admin-users-tbody');
+const searchStatus = document.getElementById('search-status');
+if (! input || ! tbody || ! searchStatus) 
+return;
+
+
+
+const searchUrl = '{{ path('admin_users_search') }}';
+let timer = null;
+const debounce = (fn, delay = 250) => (...args) => {
+clearTimeout(timer);
+timer = setTimeout(() => fn(...args), delay);
+};
+const escapeHtml = (s) => s == null ? '' : String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+
+const render = (users) => {
+if (!Array.isArray(users) || users.length === 0) {
+tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted">Aucun utilisateur trouvé.</td></tr>';
+searchStatus.textContent = 'Aucun utilisateur trouvé.';
+return;
+}
+const rows = users.map(u => {
+const roles = Array.isArray(u.roles) ? u.roles.join(', ') : '';
+const showHref = '/admin/utilisateurs/' + u.id;
+const deleteAction = '/admin/utilisateurs/' + u.id;
+return `
+                  <tr>
+                    <td>${
+escapeHtml(u.email)
+}</td>
+                    <td>${
+escapeHtml(u.nom)
+}</td>
+                    <td>${
+escapeHtml(u.prenom)
+}</td>
+                    <td>${
+escapeHtml(roles)
+}</td>
+                    <td class="text-end">
+                      <a class="btn btn-outline-turquoise btn-sm me-2" href="${showHref}">Voir activité</a>
+                      <button type="button"
+                                            class="btn btn-danger btn-sm btn-delete-user"
+                                            data-id="${
+u.id
+}"
+                                            data-email="${
+u.email
+}"
+                                            data-action="${deleteAction}"
+                                            data-csrf="${
+u.csrf
+}"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#confirmDeleteModal">
+                                      Supprimer
+                                    </button>
+                    </td>
+                  </tr>`;
+}).join('');
+tbody.innerHTML = rows;
+};
+
+const doSearch = debounce(async () => {
+const q = input.value || '';
+try {
+const resp = await fetch(searchUrl + '?q=' + encodeURIComponent(q), {
+headers: {
+'X-Requested-With': 'XMLHttpRequest'
+}
+});
+if (! resp.ok) 
+return;
+
+
+
+const data = await resp.json();
+render(data.users || []);
+} catch (e) { /* ignore */
+}
+}, 250);
+
+input.addEventListener('input', doSearch);
+})();
+			</script>
+		{% endif %}
+
+		{# Vue activité d'un utilisateur #}
+		{% if utilisateur is defined %}
+			<div class="card mt-4">
+				<div class="card-body">
+					<h5 class="card-title">Activité de
+						{{ utilisateur.prenom }}
+						{{ utilisateur.nom }}
+						<small class="text-muted">({{ utilisateur.email }})</small>
+					</h5>
+					<a class="btn btn-secondary btn-sm mb-3" href="{{ path('admin_users') }}">← Retour à la liste</a>
+
+					<div class="table-responsive">
+						<table class="table table-sm align-middle">
+							<thead>
+								<tr>
+									<th>#</th>
+									<th>Quiz</th>
+									<th>Début</th>
+									<th>Fin</th>
+									<th>Score</th>
+									<th>Durée</th>
+								</tr>
+							</thead>
+							<tbody>
+								{% for t in tentatives %}
+									{% set dur = t.formatDuration() %}
+									<tr>
+										<td>{{ t.id }}</td>
+										<td>{{ t.quiz.titre }}</td>
+										<td>{{ t.dateDebut ? t.dateDebut|date('Y-m-d H:i') : '' }}</td>
+										<td>{{ t.dateFin ? t.dateFin|date('Y-m-d H:i') : '' }}</td>
+										<td>{{ t.pourcentage is not null ? t.pourcentage ~ '%' : '' }}</td>
+										<td>{{ dur.label }}</td>
+									</tr>
+								{% else %}
+									<tr>
+										<td colspan="6" class="text-center text-muted">Aucune tentative.</td>
+									</tr>
+								{% endfor %}
+							</tbody>
+						</table>
+					</div>
+
+					<button type="button" class="btn btn-danger btn-sm btn-delete-user" data-id="{{ utilisateur.id }}" data-email="{{ utilisateur.email }}" data-action="{{ path('admin_user_delete', {id: utilisateur.id}) }}" data-csrf="{{ csrf_token('delete_user_' ~ utilisateur.id) }}" data-bs-toggle="modal" data-bs-target="#confirmDeleteModal">
+						Supprimer l'utilisateur
+					</button>
+				</div>
+			</div>
+		{% endif %}
+	</div>
+
+	<!-- Modal -->
+	<div class="modal fade" id="confirmDeleteModal" tabindex="-1" aria-labelledby="confirmDeleteModalLabel" aria-hidden="true">
+		<div class="modal-dialog">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h5 class="modal-title" id="confirmDeleteModalLabel">Confirmation de suppression</h5>
+					<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+				</div>
+				<div class="modal-body">
+					<p>Êtes-vous sûr de vouloir supprimer l'utilisateur
+						<span id="delete-email"></span>
+						?</p>
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+					<form id="delete-form" method="post">
+						<input type="hidden" name="_token" id="delete-csrf"/>
+						<button type="submit" class="btn btn-danger">Supprimer</button>
+					</form>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<script>
+		(function () {
+const modal = document.getElementById('confirmDeleteModal');
+const deleteForm = document.getElementById('delete-form');
+const deleteCsrf = document.getElementById('delete-csrf');
+const deleteEmail = document.getElementById('delete-email');
+
+modal.addEventListener('show.bs.modal', (event) => {
+const button = event.relatedTarget;
+const id = button.getAttribute('data-id');
+const email = button.getAttribute('data-email');
+const action = button.getAttribute('data-action');
+const csrf = button.getAttribute('data-csrf');
+
+deleteEmail.textContent = email;
+deleteForm.action = action;
+deleteCsrf.value = csrf;
+});
+})();
+	</script>
 {% endblock %}

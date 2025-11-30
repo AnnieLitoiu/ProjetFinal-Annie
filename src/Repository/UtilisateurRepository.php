@@ -32,4 +32,20 @@ class UtilisateurRepository extends ServiceEntityRepository implements PasswordU
         $this->getEntityManager()->persist($user);
         $this->getEntityManager()->flush();
     }
+
+    /**
+     * @return Utilisateur[]
+     */
+    public function searchByQuery(string $q): array
+    {
+        $qb = $this->createQueryBuilder('u')
+            ->orderBy('u.email', 'ASC');
+
+        if ($q !== '') {
+            $qb->andWhere('LOWER(u.email) LIKE :q OR LOWER(u.prenom) LIKE :q OR LOWER(u.nom) LIKE :q')
+                ->setParameter('q', '%' . mb_strtolower($q) . '%');
+        }
+
+        return $qb->getQuery()->getResult();
+    }
 }

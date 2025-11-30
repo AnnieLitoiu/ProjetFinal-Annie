@@ -48,6 +48,12 @@ class Tentative
     #[ORM\ManyToOne(inversedBy: 'tentatives')]
     private ?Utilisateur $utilisateur = null;
 
+    #[ORM\Column(nullable: true)]
+    private ?int $nombreQuestions = null;
+
+    #[ORM\Column(nullable: true)]
+    private ?int $tempsAlloueSecondes = null;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -198,4 +204,25 @@ class Tentative
         return $this;
     }
 
+    public function getNombreQuestions(): ?int
+    {
+        return $this->nombreQuestions;
+    }
+
+    public function setNombreQuestions(?int $nombreQuestions): static
+    {
+        $this->nombreQuestions = $nombreQuestions;
+        return $this;
+    }
+
+    public function getTempsAlloueSecondes(): ?int
+    {
+        return $this->tempsAlloueSecondes;
+    }
+
+    public function setTempsAlloueSecondes(?int $tempsAlloueSecondes): static
+    {
+        $this->tempsAlloueSecondes = $tempsAlloueSecondes;
+        return $this;
+    }
 }

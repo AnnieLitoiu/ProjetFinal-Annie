@@ -16,21 +16,30 @@ use Doctrine\ORM\Query;
 class TentativeRepository extends ServiceEntityRepository
 {
     public const MAX_TENTATIVES = 1;
-    
+
     public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry, Tentative::class);
     }
 
-    public function saveTentative(Quiz $quiz,
-                    Utilisateur $utilisateur
-        ): Tentative {
+    public function saveTentative(
+        Quiz $quiz,
+        Utilisateur $utilisateur,
+        ?int $nombreQuestions = null,
+        ?int $tempsAlloueSecondes = null
+    ): Tentative {
         $tentative = new Tentative();
         $tentative->setDateDebut(new DateTime('now'));
         $tentative->setMaxTentatives(self::MAX_TENTATIVES);
         $tentative->setPourcentage(0);
         $tentative->setQuiz($quiz);
         $tentative->setUtilisateur($utilisateur);
+        if ($nombreQuestions !== null) {
+            $tentative->setNombreQuestions($nombreQuestions);
+        }
+        if ($tempsAlloueSecondes !== null) {
+            $tentative->setTempsAlloueSecondes($tempsAlloueSecondes);
+        }
         $em = $this->getEntityManager();
         $em->persist($tentative);
         $em->flush();
@@ -39,14 +48,14 @@ class TentativeRepository extends ServiceEntityRepository
     }
 
     public function finirTentative(
-                    int $reponsesCorrectes,
-                    int $reponsesMauvaises,
-                    int $reponsesDonnees,
-                    int $nonRepondues,
-                    float $pourcentage,
-                    array $reponses,
-                    Tentative $tentative
-        ): Tentative {
+        int $reponsesCorrectes,
+        int $reponsesMauvaises,
+        int $reponsesDonnees,
+        int $nonRepondues,
+        float $pourcentage,
+        array $reponses,
+        Tentative $tentative
+    ): Tentative {
         $tentative->setDateFin(new DateTime('now'));
         $tentative->setReponsesCorrectes($reponsesCorrectes);
         $tentative->setReponsesMauvaises($reponsesMauvaises);
@@ -72,11 +81,11 @@ class TentativeRepository extends ServiceEntityRepository
             ->getQuery()                                   // génère la requête
             ->getOneOrNullResult();                        // renvoie un résultat ou null
     }
-    
+
     // Renvoie une requête pour récupérer les tentatives d’un utilisateur
     public function requeteParUtilisateur(Utilisateur $utilisateur): Query
     {
-        return $this->createQueryBuilder('t')                   
+        return $this->createQueryBuilder('t')
             ->andWhere('t.utilisateur = :utilisateur')          // filtre par utilisateur
             ->setParameter('utilisateur', $utilisateur)         // injecte la valeur de l'utilisateur
             ->orderBy('t.dateDebut', 'DESC')                    // trie par date de début décroissante
