@@ -11,7 +11,8 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
 class TentativeType extends AbstractType
 {
     public function buildForm(FormBuilderInterface $builder, array $options): void
-    {
+    {  
+         // Champ caché pour transmettre l'ID du quiz au contrôleur
         $builder->add('quiz_id', HiddenType::class, [
                 'mapped' => false,
                 'data' => $options['quiz_id'],

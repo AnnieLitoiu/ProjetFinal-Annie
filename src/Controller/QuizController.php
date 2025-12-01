@@ -12,10 +12,10 @@ use Symfony\Component\Routing\Attribute\Route;
 use Knp\Component\Pager\PaginatorInterface;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
-#[IsGranted('ROLE_USER')]
+#[IsGranted('ROLE_USER')] // Ce contrôleur est réservé aux utilisateurs connectés
 final class QuizController extends AbstractController
 {
-    // Liste paginée des quiz pour un niveau donné
+    // Affiche une liste paginée des quiz pour un niveau donné
     #[Route('/quiz/liste/{niveau}', name: 'app_quiz_liste')]
     public function quizListe(
         Request $req,
@@ -25,10 +25,10 @@ final class QuizController extends AbstractController
     ): Response {
         $idNiveau = $req->get('niveau');
 
-        // Requête Doctrine (QueryBuilder) pour récupérer les quiz du niveau
+        // Requête Doctrine qui récupère les quiz appartenant à ce niveau
         $query = $rep->requeteParNiveauId((int) $idNiveau);
 
-        // Pagination des résultats (5 éléments par page)
+        // Pagination : on limite à 5 quiz par page
         $pagination = $paginator->paginate(
             $query,
             $req->query->getInt('page', 1),
@@ -41,7 +41,7 @@ final class QuizController extends AbstractController
         ]);
     }
 
-    // Crée une tentative pour un quiz et redirige vers l'écran de jeu (question par question)
+    // Prépare et démarre une tentative de quiz (choix du nombre de questions)
     #[Route('/quiz/{id}/start', name: 'app_start_quiz', requirements: ['id' => '\d+'], methods: ['GET', 'POST'])]
     public function startQuiz(
         Request $req,
@@ -51,43 +51,56 @@ final class QuizController extends AbstractController
     ): Response {
         $idQuiz = (int) $req->get('id');
         $quiz = $repQuiz->find($idQuiz);
+
+        // Si l'ID du quiz n'existe pas, on déclenche une erreur 404
         if (!$quiz) {
             throw $this->createNotFoundException('Quiz introuvable');
         }
 
+        // Affichage de la page permettant de choisir 5, 10 ou 15 questions
         if ($req->isMethod('GET')) {
-            // Affiche l'écran de démarrage (choix 5/10/15 questions)
             return $this->render('quiz/demarrer.html.twig', [
                 'quiz' => $quiz,
-                'nombre_par_defaut' => 10,
-                'temps_par_question' => 30,
+                'nombre_par_defaut' => 10, // valeur proposée par défaut
+                'temps_par_question' => 30, // durée attribuée par question (en secondes)
             ]);
         }
 
-        // POST: lecture du choix utilisateur
+        // Lecture du choix utilisateur (5, 10 ou 15 questions)
         $nombre = (int) $req->request->get('nombre_questions', 10);
         if (!in_array($nombre, [5, 10, 15], true)) {
-            $nombre = 10;
+            $nombre = 10; // sécurité : valeur par défaut si non valide
         }
-        $tempsParQuestion = 30; // secondes/question (configurable)
+
+        // Calcul du temps total accordé pour la tentative
+        $tempsParQuestion = 30;
         $tempsAlloue = $nombre * $tempsParQuestion;
 
-        // Tirage aléatoire des N questions à partir du quiz
+        // Tirage aléatoire d'un ensemble de questions pour ce quiz
         $idsQuestions = $repQuestion->tirerAleatoireIdsParQuiz($idQuiz, $nombre);
+
+        // Si le quiz ne contient pas assez de questions, on retourne à la liste
         if (count($idsQuestions) === 0) {
             $this->addFlash('warning', 'Aucune question disponible pour ce quiz.');
             return $this->redirectToRoute('app_quiz_liste', ['niveau' => $quiz->getNiveau()->getId()]);
         }
 
-        // Crée la tentative en enregistrant le nombre et le temps alloué
+        // Récupère l'utilisateur connecté
         /** @var \App\Entity\Utilisateur $utilisateur */
         $utilisateur = $this->getUser();
+
+        // Création de la tentative en base de données
         $tentative = $repTentative->saveTentative($quiz, $utilisateur, $nombre, $tempsAlloue);
 
-        // Stocke la sélection des questions en session, isolée par tentative
+        // Stocke en session les IDs des questions choisies pour cette tentative
+        // Chaque tentative a sa propre clé de session
         $session = $req->getSession();
         $session->set('quiz_question_ids' . $tentative->getId(), $idsQuestions);
 
-        return $this->redirectToRoute('app_quiz_jouer', ['id' => $tentative->getId(), 'page' => 1]);
+        // Redirection vers la première question
+        return $this->redirectToRoute('app_quiz_jouer', [
+            'id' => $tentative->getId(),
+            'page' => 1
+        ]);
     }
 }

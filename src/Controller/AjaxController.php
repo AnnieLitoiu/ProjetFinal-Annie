@@ -2,29 +2,41 @@
 
 namespace App\Controller;
 
+use App\Entity\Utilisateur;
+use App\Repository\UtilisateurRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
-use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 final class AjaxController extends AbstractController
 {
-    #[Route('/ajax/form/independant', name: 'app_ajax_form_independant')]
-    public function formIndependant(): Response
-    {  
-        return $this->render('ajax/form_independant.html.twig');
-    }
-
-    #[Route('/ajax/form/independant/traitement', name: 'app_ajax_form_independant_traitement')]
-    public function formIndependantTraitement(Request $req):Response
+    // Recherche AJAX des utilisateurs pour l'admin (retourne du JSON)
+    #[Route('/admin/utilisateurs/search', name: 'admin_users_search', methods: ['GET'])]
+    #[IsGranted('ROLE_ADMIN')] 
+    public function searchUsers(Request $request, UtilisateurRepository $utilisateurRepository): JsonResponse
     {
-        $nom = $req->get('nom');
+        // Terme de recherche dans l'URL (?q=...)
+        $q = trim((string) $request->query->get('q', ''));
+        $users = $utilisateurRepository->searchByQuery($q);
 
-        $vars = ['message' => 'Bonjour ' . $nom,
-                'autreDonnee' => 'autre donnée',
-                'status' => 'OK'];
+        // On prépare un tableau simple pour le JSON
+        $data = array_map(function (Utilisateur $u) {
+            return [
+                'id' => $u->getId(),
+                'email' => $u->getEmail(),
+                'prenom' => $u->getPrenom(),
+                'nom' => $u->getNom(),
+                'roles' => $u->getRoles(),
+                // Jeton CSRF pour sécuriser un bouton "supprimer" côté JS
+                'csrf' => $this->container
+                    ->get('security.csrf.token_manager')
+                    ->getToken('delete_user_' . $u->getId())
+                    ->getValue(),
+            ];
+        }, $users);
 
-        return new JsonResponse($vars);
+        return $this->json(['users' => $data]);
     }
 }

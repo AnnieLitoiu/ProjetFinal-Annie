@@ -1,27 +1,30 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Administration
-{% endblock %}
+{% block title %}Administration{% endblock %}
 
 {% block body %}
 	<div class="container">
 		<h1 class="mb-4">Administration</h1>
 
-		{# Vue liste + recherche #}
+		{# ---------------------------- #}
+		{# Vue LISTE + RECHERCHE USERS #}
+		{# ---------------------------- #}
 		{% if users is defined %}
 			<form method="get" action="{{ path('admin_users') }}" class="row g-2 mb-3">
 				<div class="col-sm-8 col-md-6">
+					{# Champ de recherche pour email / prénom / nom #}
 					<label for="admin-search-q" class="visually-hidden">Rechercher des utilisateurs par email, prénom ou nom</label>
-					<input id="admin-search-q" type="text" name="q" value="{{ q|default('') }}" class="form-control" placeholder="Rechercher par email, prénom ou nom" autocomplete="off"/>
+					<input id="admin-search-q" type="text" name="q" value="{{ q|default('') }}"
+						   class="form-control" placeholder="Rechercher par email, prénom ou nom" autocomplete="off"/>
 				</div>
 				<div class="col-auto">
 					<button class="btn btn-turquoise btn-sm" type="submit">Rechercher</button>
 				</div>
 			</form>
 
+			{# Tableau des utilisateurs #}
 			<div class="table-responsive">
 				<table class="table table-sm align-middle">
-					<caption class="visually-hidden">Liste des utilisateurs</caption>
 					<thead>
 						<tr>
 							<th>Email</th>
@@ -39,8 +42,20 @@
 								<td>{{ u.prenom }}</td>
 								<td>{{ u.roles|join(', ') }}</td>
 								<td class="text-end">
-									<a class="btn btn-outline-turquoise btn-sm me-2" href="{{ path('admin_user_show', {id: u.id}) }}">Voir activité</a>
-									<button type="button" class="btn btn-danger btn-sm btn-delete-user" data-id="{{ u.id }}" data-email="{{ u.email }}" data-action="{{ path('admin_user_delete', {id: u.id}) }}" data-csrf="{{ csrf_token('delete_user_' ~ u.id) }}" data-bs-toggle="modal" data-bs-target="#confirmDeleteModal">
+									{# Lien pour voir l’activité du user #}
+									<a class="btn btn-outline-turquoise btn-sm me-2"
+									   href="{{ path('admin_user_show', {id: u.id}) }}">
+										Voir activité
+									</a>
+
+									{# Bouton delete avec données envoyées au modal #}
+									<button type="button" class="btn btn-danger btn-sm btn-delete-user"
+											data-id="{{ u.id }}"
+											data-email="{{ u.email }}"
+											data-action="{{ path('admin_user_delete', {id: u.id}) }}"
+											data-csrf="{{ csrf_token('delete_user_' ~ u.id) }}"
+											data-bs-toggle="modal"
+											data-bs-target="#confirmDeleteModal">
 										Supprimer
 									</button>
 								</td>
@@ -54,109 +69,111 @@
 				</table>
 			</div>
 
+			{# Élément invisible utilisé pour l’accessibilité lors des recherches AJAX #}
 			<div id="search-status" aria-live="polite" aria-atomic="true" class="visually-hidden"></div>
 
+			{# ----------- #}
+			{# Script AJAX #}
+			{# ----------- #}
 			<script>
 				(function () {
-const input = document.getElementById('admin-search-q');
-const tbody = document.getElementById('admin-users-tbody');
-const searchStatus = document.getElementById('search-status');
-if (! input || ! tbody || ! searchStatus) 
-return;
 
+					// Récupération des éléments de la page
+					const input = document.getElementById('admin-search-q');
+					const tbody = document.getElementById('admin-users-tbody');
+					const searchStatus = document.getElementById('search-status');
 
+					if (!input || !tbody || !searchStatus) return;
 
-const searchUrl = '{{ path('admin_users_search') }}';
-let timer = null;
-const debounce = (fn, delay = 250) => (...args) => {
-clearTimeout(timer);
-timer = setTimeout(() => fn(...args), delay);
-};
-const escapeHtml = (s) => s == null ? '' : String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+					// URL de la route AJAX
+					const searchUrl = '{{ path('admin_users_search') }}';
 
-const render = (users) => {
-if (!Array.isArray(users) || users.length === 0) {
-tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted">Aucun utilisateur trouvé.</td></tr>';
-searchStatus.textContent = 'Aucun utilisateur trouvé.';
-return;
-}
-const rows = users.map(u => {
-const roles = Array.isArray(u.roles) ? u.roles.join(', ') : '';
-const showHref = '/admin/utilisateurs/' + u.id;
-const deleteAction = '/admin/utilisateurs/' + u.id;
-return `
-                  <tr>
-                    <td>${
-escapeHtml(u.email)
-}</td>
-                    <td>${
-escapeHtml(u.nom)
-}</td>
-                    <td>${
-escapeHtml(u.prenom)
-}</td>
-                    <td>${
-escapeHtml(roles)
-}</td>
-                    <td class="text-end">
-                      <a class="btn btn-outline-turquoise btn-sm me-2" href="${showHref}">Voir activité</a>
-                      <button type="button"
-                                            class="btn btn-danger btn-sm btn-delete-user"
-                                            data-id="${
-u.id
-}"
-                                            data-email="${
-u.email
-}"
-                                            data-action="${deleteAction}"
-                                            data-csrf="${
-u.csrf
-}"
-                                            data-bs-toggle="modal"
-                                            data-bs-target="#confirmDeleteModal">
-                                      Supprimer
-                                    </button>
-                    </td>
-                  </tr>`;
-}).join('');
-tbody.innerHTML = rows;
-};
+					// Petite fonction de "debounce" pour éviter trop de requêtes
+					let timer = null;
+					const debounce = (fn, delay = 250) => (...args) => {
+						clearTimeout(timer);
+						timer = setTimeout(() => fn(...args), delay);
+					};
 
-const doSearch = debounce(async () => {
-const q = input.value || '';
-try {
-const resp = await fetch(searchUrl + '?q=' + encodeURIComponent(q), {
-headers: {
-'X-Requested-With': 'XMLHttpRequest'
-}
-});
-if (! resp.ok) 
-return;
+					// Sécurise les valeurs insérées dans HTML
+					const escapeHtml = (s) => s == null ? '' : String(s)
+						.replace(/&/g, '&amp;')
+						.replace(/</g, '&lt;')
+						.replace(/>/g, '&gt;')
+						.replace(/"/g, '&quot;')
+						.replace(/'/g, '&#39;');
 
+					// Construit les lignes du tableau en fonction des résultats AJAX
+					const render = (users) => {
+						if (!Array.isArray(users) || users.length === 0) {
+							tbody.innerHTML =
+								'<tr><td colspan="5" class="text-center text-muted">Aucun utilisateur trouvé.</td></tr>';
+							searchStatus.textContent = 'Aucun utilisateur trouvé.';
+							return;
+						}
 
+						const rows = users.map(u => {
+							const roles = Array.isArray(u.roles) ? u.roles.join(', ') : '';
+							return `
+								<tr>
+									<td>${escapeHtml(u.email)}</td>
+									<td>${escapeHtml(u.nom)}</td>
+									<td>${escapeHtml(u.prenom)}</td>
+									<td>${escapeHtml(roles)}</td>
+									<td class="text-end">
+										<a class="btn btn-outline-turquoise btn-sm me-2" href="/admin/utilisateurs/${u.id}">
+											Voir activité
+										</a>
+										<button type="button"
+											class="btn btn-danger btn-sm btn-delete-user"
+											data-id="${u.id}"
+											data-email="${u.email}"
+											data-action="/admin/utilisateurs/${u.id}"
+											data-csrf="${u.csrf}"
+											data-bs-toggle="modal"
+											data-bs-target="#confirmDeleteModal">
+												Supprimer
+										</button>
+									</td>
+								</tr>`;
+						}).join('');
 
-const data = await resp.json();
-render(data.users || []);
-} catch (e) { /* ignore */
-}
-}, 250);
+						tbody.innerHTML = rows;
+					};
 
-input.addEventListener('input', doSearch);
-})();
+					// Appel AJAX lorsque l'utilisateur tape
+					const doSearch = debounce(async () => {
+						const q = input.value || '';
+						try {
+							const resp = await fetch(searchUrl + '?q=' + encodeURIComponent(q), {
+								headers: {'X-Requested-With': 'XMLHttpRequest'}
+							});
+							if (!resp.ok) return;
+
+							const data = await resp.json();
+							render(data.users || []);
+						} catch (e) {}
+					}, 250);
+
+					input.addEventListener('input', doSearch);
+				})();
 			</script>
 		{% endif %}
 
-		{# Vue activité d'un utilisateur #}
+		{# ---------------------- #}
+		{# Vue DETAIL UTILISATEUR #}
+		{# ---------------------- #}
 		{% if utilisateur is defined %}
 			<div class="card mt-4">
 				<div class="card-body">
-					<h5 class="card-title">Activité de
-						{{ utilisateur.prenom }}
-						{{ utilisateur.nom }}
+					<h5 class="card-title">
+						Activité de {{ utilisateur.prenom }} {{ utilisateur.nom }}
 						<small class="text-muted">({{ utilisateur.email }})</small>
 					</h5>
+
 					<a class="btn btn-secondary btn-sm mb-3" href="{{ path('admin_users') }}">← Retour à la liste</a>
 
+					{# Tableau des tentatives de quiz #}
 					<div class="table-responsive">
 						<table class="table table-sm align-middle">
 							<thead>
@@ -165,7 +182,7 @@ input.addEventListener('input', doSearch);
 									<th>Quiz</th>
 									<th>Début</th>
 									<th>Fin</th>
-									<th>Score</th>
+									<th>Pourcentage</th>
 									<th>Durée</th>
 								</tr>
 							</thead>
@@ -189,7 +206,14 @@ input.addEventListener('input', doSearch);
 						</table>
 					</div>
 
-					<button type="button" class="btn btn-danger btn-sm btn-delete-user" data-id="{{ utilisateur.id }}" data-email="{{ utilisateur.email }}" data-action="{{ path('admin_user_delete', {id: utilisateur.id}) }}" data-csrf="{{ csrf_token('delete_user_' ~ utilisateur.id) }}" data-bs-toggle="modal" data-bs-target="#confirmDeleteModal">
+					{# Bouton delete dans la vue détail #}
+					<button type="button" class="btn btn-danger btn-sm btn-delete-user"
+							data-id="{{ utilisateur.id }}"
+							data-email="{{ utilisateur.email }}"
+							data-action="{{ path('admin_user_delete', {id: utilisateur.id}) }}"
+							data-csrf="{{ csrf_token('delete_user_' ~ utilisateur.id) }}"
+							data-bs-toggle="modal"
+							data-bs-target="#confirmDeleteModal">
 						Supprimer l'utilisateur
 					</button>
 				</div>
@@ -197,21 +221,25 @@ input.addEventListener('input', doSearch);
 		{% endif %}
 	</div>
 
-	<!-- Modal -->
+	{# ---------------- #}
+	{# MODAL DELETE     #}
+	{# ---------------- #}
 	<div class="modal fade" id="confirmDeleteModal" tabindex="-1" aria-labelledby="confirmDeleteModalLabel" aria-hidden="true">
 		<div class="modal-dialog">
 			<div class="modal-content">
 				<div class="modal-header">
 					<h5 class="modal-title" id="confirmDeleteModalLabel">Confirmation de suppression</h5>
-					<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+					<button type="button" class="btn-close" data-bs-dismiss="modal"></button>
 				</div>
+
 				<div class="modal-body">
-					<p>Êtes-vous sûr de vouloir supprimer l'utilisateur
-						<span id="delete-email"></span>
-						?</p>
+					<p>Êtes-vous sûr de vouloir supprimer l'utilisateur <span id="delete-email"></span> ?</p>
 				</div>
+
 				<div class="modal-footer">
 					<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+
+					{# Formulaire envoyé au clic sur "Supprimer" #}
 					<form id="delete-form" method="post">
 						<input type="hidden" name="_token" id="delete-csrf"/>
 						<button type="submit" class="btn btn-danger">Supprimer</button>
@@ -221,24 +249,22 @@ input.addEventListener('input', doSearch);
 		</div>
 	</div>
 
+	{# Script qui remplit automatiquement le modal #}
 	<script>
 		(function () {
-const modal = document.getElementById('confirmDeleteModal');
-const deleteForm = document.getElementById('delete-form');
-const deleteCsrf = document.getElementById('delete-csrf');
-const deleteEmail = document.getElementById('delete-email');
+			const modal = document.getElementById('confirmDeleteModal');
+			const deleteForm = document.getElementById('delete-form');
+			const deleteCsrf = document.getElementById('delete-csrf');
+			const deleteEmail = document.getElementById('delete-email');
 
-modal.addEventListener('show.bs.modal', (event) => {
-const button = event.relatedTarget;
-const id = button.getAttribute('data-id');
-const email = button.getAttribute('data-email');
-const action = button.getAttribute('data-action');
-const csrf = button.getAttribute('data-csrf');
-
-deleteEmail.textContent = email;
-deleteForm.action = action;
-deleteCsrf.value = csrf;
-});
-})();
+			// Quand le modal s'ouvre, on récupère les infos du bouton cliqué
+			modal.addEventListener('show.bs.modal', (event) => {
+				const button = event.relatedTarget;
+				deleteEmail.textContent = button.getAttribute('data-email');
+				deleteForm.action = button.getAttribute('data-action');
+				deleteCsrf.value = button.getAttribute('data-csrf');
+			});
+		})();
 	</script>
+
 {% endblock %}

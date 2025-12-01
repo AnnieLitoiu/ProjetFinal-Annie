@@ -91,14 +91,12 @@ class QuizQuestionsReponsesFixtures extends Fixture implements DependentFixtureI
             ],
         ];
 
-        // Références Doctrine des niveaux
         $refNiveaux = [
             'debutant' => 'niveau_debutant',
             'intermediaire' => 'niveau_intermediaire',
             'avance' => 'niveau_avance',
         ];
 
-        // Libellés en français avec accents
         $libellesNiveaux = [
             'debutant' => 'Débutant',
             'intermediaire' => 'Intermédiaire',

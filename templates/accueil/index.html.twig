@@ -3,7 +3,7 @@
 {% block title %}Hello AccueilController!{% endblock %}
 
 {% block body %}
-    {# ✅ Messages flash de succès (affichés après l'inscription, par exemple) #}
+    {# Messages flash de succès (affichés après l'inscription, par exemple) #}
     {% for message in app.flashes('success') %}
         <div class="alert alert-success" role="alert">
             {{ message }}

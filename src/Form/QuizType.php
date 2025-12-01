@@ -14,8 +14,11 @@ class QuizType extends AbstractType
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         $builder
+            // Champ pour saisir le titre du quiz
             ->add('titre', TextType::class)
-            ->add('niveau', IntegerType::class );
+
+            // Champ du niveau sous forme d'entier 
+            ->add('niveau', IntegerType::class);
     }
 
     public function configureOptions(OptionsResolver $resolver): void

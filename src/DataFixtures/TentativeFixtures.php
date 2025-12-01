@@ -16,14 +16,18 @@ class TentativeFixtures extends Fixture implements DependentFixtureInterface
     {
         $faker = Faker\Factory::create('fr_FR');
 
+        // Récupère tous les quiz : chaque tentative doit être liée à un quiz existant
         $quizzes = $manager->getRepository(\App\Entity\Quiz::class)->findAll();
 
         if (empty($quizzes)) {
-            throw new \RuntimeException('No quizzes found. Please load Quiz fixtures first.');
+            // Sécurité : on stoppe si les quiz n'ont pas encore été générés
+            throw new \RuntimeException('Aucun quiz trouvé. Veuillez charger les fixtures de Quiz avant.');
         }
 
         for ($i = 0; $i < 25; $i++) {
             $tentative = new TentativeEntity();
+
+            // Valeurs aléatoires réalistes pour simuler des tentatives
             $tentative->setMaxTentatives(TentativeRepository::MAX_TENTATIVES);
             $tentative->setDateDebut($faker->dateTime);
             $tentative->setDateFin($faker->dateTime);
@@ -35,9 +39,7 @@ class TentativeFixtures extends Fixture implements DependentFixtureInterface
             $tentative->setPourcentage($faker->randomDigit);
             $tentative->setReponsesUtilisateur([$faker->randomDigit()]);
 
-            // fixer l'user pour la tentative
-            // $this->addReference("utilisateur" . $i, $utilisateur);
-
+            // Associe une tentative à un utilisateur déjà créé (fixtures Utilisateur)
             $tentative->setUtilisateur($this->getReference("utilisateur" . rand(1,5), Utilisateur::class));
             
             $manager->persist($tentative);
@@ -46,6 +48,7 @@ class TentativeFixtures extends Fixture implements DependentFixtureInterface
         $manager->flush();
     }
 
+    // Cette fixture dépend des quiz, donc elle doit s'exécuter après
     public function getDependencies(): array
     {
         return ([QuizQuestionsReponsesFixtures::class]);
