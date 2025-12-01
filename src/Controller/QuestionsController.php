@@ -137,16 +137,89 @@ final class QuestionsController extends AbstractController
 
         // Récupérer la tentative + données de session
         $tentative = $rep->trouverAvecQuiz($idTentative);
-        $session = $req->getSession();
-        $reponses = $session->get('quiz_reponses' . $idTentative, []);
+        $session   = $req->getSession();
+        $reponses  = $session->get('quiz_reponses' . $idTentative, []);
         $idsSelection = $session->get('quiz_question_ids' . $idTentative, []);
 
-        // Total de questions (5 / 10 / 15 ou toutes les questions)
-        $choisi = $tentative->getNombreQuestions();
-        $totalQuestionsQuiz = max(
-            1,
-            ($choisi ?? $questionRepo->compterParQuizId($tentative->getQuiz()->getId()))
-        );
+        // 1️⃣ CAS REFRESH : tentative déjà terminée, plus rien en session
+        if ($tentative->getDateFin() !== null && empty($reponses)) {
+            // On recharge les réponses et questions depuis la BDD
+            $reponses = $tentative->getReponsesUtilisateur() ?? [];
+            $questionIds = $tentative->getQuestionIds() ?? [];
+
+            if (!empty($questionIds)) {
+                $questions = $questionRepo->findBy(['id' => $questionIds]);
+                $totalQuestionsQuiz = count($questionIds);
+            } else {
+                $questions = $questionRepo
+                    ->requeteParQuizId($tentative->getQuiz()->getId())
+                    ->getResult();
+                $totalQuestionsQuiz = count($questions);
+            }
+
+            // Construction des détails (même logique qu’en bas)
+            $details     = [];
+            $mapReponses = [];
+            foreach ($reponses as $r) {
+                $mapReponses[$r['id_question']] = $r;
+            }
+
+            $numero = 1;
+            foreach ($questions as $q) {
+                $qid  = $q->getId();
+                $user = $mapReponses[$qid] ?? null;
+
+                $bonneRep = null;
+                foreach ($q->getReponses() as $repQ) {
+                    if ($repQ->isEstCorrecte()) {
+                        $bonneRep = $repQ;
+                        break;
+                    }
+                }
+
+                $details[] = [
+                    'numero'        => $numero++,
+                    'intitule'      => $q->getEnonce(),
+                    'votre_reponse' => $user && !empty($user['id_reponse_choisie'])
+                        ? $q->getReponses()
+                            ->filter(fn($r) => $r->getId() === $user['id_reponse_choisie'])
+                            ->first()?->getTexte()
+                        : null,
+                    'bonne_reponse' => $bonneRep?->getTexte(),
+                    'est_correcte'  => $user['est_correcte'] ?? false,
+                ];
+            }
+
+            $duration = $tentative->formatDuration();
+
+            return $this->render('quiz/quiz_resultat.html.twig', [
+                'tentative'             => $tentative,
+                'reponses_correctes'    => $tentative->getReponsesCorrectes(),
+                'reponses_mauvaises'    => $tentative->getReponsesMauvaises(),
+                'total_questions'       => $totalQuestionsQuiz,
+                'pourcentage'           => $tentative->getPourcentage(),
+                'reponses_donnees'      => $tentative->getReponsesDonnees(),
+                'non_repondues'         => $tentative->getNonRepondues(),
+                'reponses_details'      => $details,
+                'temps_ecoule_label'    => $duration['label'],
+                'temps_ecoule_secondes' => $duration['seconds'],
+            ]);
+        }
+
+        // 2️⃣ CAS NORMAL : première fois qu’on arrive sur /terminer (on a encore la session)
+
+        // Déterminer les IDs des questions
+        $questionIds = !empty($idsSelection) ? $idsSelection : ($tentative->getQuestionIds() ?? []);
+
+        if (!empty($questionIds)) {
+            $questions = $questionRepo->findBy(['id' => $questionIds]);
+            $totalQuestionsQuiz = count($questionIds); // 5 / 10 / 15
+        } else {
+            $questions = $questionRepo
+                ->requeteParQuizId($tentative->getQuiz()->getId())
+                ->getResult();
+            $totalQuestionsQuiz = count($questions);
+        }
 
         // Statistiques
         $reponsesDonnees   = count($reponses);
@@ -164,7 +237,10 @@ final class QuestionsController extends AbstractController
         $reponsesMauvaises = max(0, $reponsesDonnees - $reponsesCorrectes);
         $nonRepondues      = max(0, $totalQuestionsQuiz - $reponsesDonnees);
 
-        // Sauvegarde de la tentative
+        // Sauvegarde de la tentative + IDs de questions
+        $questionIds = !empty($questionIds) ? $questionIds : $idsSelection;
+        $tentative->setQuestionIds($questionIds);
+
         $rep->finirTentative(
             $reponsesCorrectes,
             $reponsesMauvaises,
@@ -174,32 +250,11 @@ final class QuestionsController extends AbstractController
             $reponses,
             $tentative
         );
-
-        // Construction des détails des réponses AVANT de nettoyer la session
-
-        // Nouvelle logique Windsurf : on récupère d'abord les IDs de questions à partir
-        // de la session, ou depuis la tentative si la session est vide.
-        $questionIds = !empty($idsSelection) ? $idsSelection : $tentative->getQuestionIds();
-
-        if (!empty($questionIds)) {
-            // On récupère uniquement les questions tirées au sort pour ce quiz
-            $questions = $questionRepo->findBy([
-                'id' => $questionIds,
-            ]);
-        } else {
-            // Fallback : toutes les questions du quiz (cas ancien ou sans sélection)
-            $questions = $questionRepo
-                ->requeteParQuizId($tentative->getQuiz()->getId())
-                ->getResult();
-        }
-
-        // On enregistre les IDs de questions sur la tentative avant de nettoyer la session
-        $tentative->setQuestionIds($idsSelection);
         $entityManager->persist($tentative);
         $entityManager->flush();
 
-        $details = [];
-
+        // Construction des détails
+        $details     = [];
         $mapReponses = [];
         foreach ($reponses as $r) {
             $mapReponses[$r['id_question']] = $r;
@@ -231,13 +286,13 @@ final class QuestionsController extends AbstractController
             ];
         }
 
-        // Nettoyage de la session une fois qu'on a tout utilisé
+        // Nettoyage de la session (on le fait une seule fois)
         $session->remove('quiz_reponses' . $idTentative);
         $session->remove('quiz_question_ids' . $idTentative);
 
         $duration = $tentative->formatDuration();
 
-        $vars = [
+        return $this->render('quiz/quiz_resultat.html.twig', [
             'tentative'             => $tentative,
             'reponses_correctes'    => $reponsesCorrectes,
             'reponses_mauvaises'    => $reponsesMauvaises,
@@ -248,8 +303,7 @@ final class QuestionsController extends AbstractController
             'reponses_details'      => $details,
             'temps_ecoule_label'    => $duration['label'],
             'temps_ecoule_secondes' => $duration['seconds'],
-        ];
-
-        return $this->render('quiz/quiz_resultat.html.twig', $vars);
+        ]);
     }
+
 }

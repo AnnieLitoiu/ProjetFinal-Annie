@@ -25,8 +25,8 @@ class TentativeRepository extends ServiceEntityRepository
     public function saveTentative(
         Quiz $quiz,
         Utilisateur $utilisateur,
-        ?int $nombreQuestions = null,
-        ?int $tempsAlloueSecondes = null
+        int $nombreQuestions,
+        int $tempsAlloueSecondes
     ): Tentative {
         $tentative = new Tentative();
         $tentative->setDateDebut(new DateTime('now'));
