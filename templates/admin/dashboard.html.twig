@@ -1,0 +1,155 @@
+{% extends 'base.html.twig' %}
+{% block title %}Tableau de bord admin
+{% endblock %}
+
+{% block body %}
+	<div class="container py-4">
+		<h1 class="mb-4">Tableau de bord</h1>
+
+		<style>
+			.card-clickable {
+				cursor: pointer;
+				border-color: rgba(13, 110, 253, 0.25);
+			}
+			.card-clickable:hover {
+				box-shadow: 0 0.5rem 1rem rgba(13, 110, 253, 0.15);
+				transform: translateY(-1px);
+			}
+			.card-static {
+				cursor: default;
+				background-color: #f8f9fa;
+				border-style: dashed;
+			}
+		</style>
+
+
+		<div class="row g-3">
+			<div class="col-12 col-sm-6 col-lg-3">
+				<a class="text-decoration-none" href="{{ path('admin_leaderboard') }}">
+					<div class="card h-100 shadow-sm card-clickable">
+						<div class="card-body">
+							<h5 class="card-title mb-2">Classement
+								<span class="ms-1 text-primary">→</span>
+							</h5>
+							<p class="text-muted mb-0">Meilleur % ➜ plus faible</p>
+						</div>
+					</div>
+				</a>
+			</div>
+
+			<div class="col-12 col-sm-6 col-lg-3">
+				<a class="text-decoration-none" href="{{ path('admin_users', {view: 'list'}) }}">
+					<div class="card h-100 shadow-sm card-clickable">
+						<div class="card-body">
+							<h5 class="card-title mb-2">Utilisateurs
+								<span class="ms-1 text-primary">→</span>
+							</h5>
+							<p class="text-muted mb-0">Liste + recherche</p>
+						</div>
+					</div>
+				</a>
+			</div>
+
+			<div class="col-12 col-sm-6 col-lg-3">
+				<a class="text-decoration-none" href="{{ path('admin_quizzes') }}">
+					<div class="card h-100 shadow-sm card-clickable">
+						<div class="card-body">
+							<h5 class="card-title mb-2">Tous les quiz
+								<span class="ms-1 text-primary">→</span>
+							</h5>
+							<p class="text-muted mb-0">Liste complète des quiz</p>
+						</div>
+					</div>
+				</a>
+			</div>
+
+			<div class="col-12 col-sm-6 col-lg-3">
+				<div class="card h-100 shadow-sm card-static">
+					<div class="card-body">
+						<h5 class="card-title mb-2">Total utilisateurs</h5>
+						<div class="display-6">{{ totalUsers }}</div>
+					</div>
+				</div>
+			</div>
+
+			<div class="col-12 col-sm-6 col-lg-3">
+				<div class="card h-100 shadow-sm card-static">
+					<div class="card-body">
+						<h5 class="card-title mb-2">Total tentatives</h5>
+						<div class="display-6">{{ totalTentatives }}</div>
+					</div>
+				</div>
+			</div>
+
+			<div class="col-12 col-sm-6 col-lg-3">
+				<div class="card h-100 shadow-sm card-static">
+					<div class="card-body">
+						<h5 class="card-title mb-2">Taux moyen global</h5>
+						<div class="display-6">{{ avgPct|number_format(2, ',', ' ') }}%</div>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<div class="my-3">
+			<hr class="my-2"/>
+			<h2 class="h5 text-secondary mb-0">Statistiques</h2>
+		</div>
+
+		<div class="row g-3 mt-2">
+			<div class="col-12 col-lg-6">
+				<div class="card h-100 shadow-sm card-static">
+					<div class="card-body">
+						<div class="d-flex justify-content-between align-items-center mb-2">
+							<h5 class="card-title mb-0">Top 3 meilleurs %</h5>
+							<a class="btn btn-sm btn-outline-primary" href="{{ path('admin_leaderboard') }}">Voir le classement complet</a>
+						</div>
+						<ul class="list-group list-group-flush">
+							{% for row in top5 %}
+								<li class="list-group-item d-flex justify-content-between align-items-center">
+									<span>
+										{% set r = loop.index %}
+										{% set medal = r == 1 ? '🥇' : (r == 2 ? '🥈' : (r == 3 ? '🥉' : '')) %}
+										<strong>
+											{% if medal %}
+												<span class="me-1">{{ medal }}</span>
+											{% endif %}
+											{{ row.user.prenom ?? '' }}
+											{{ row.user.nom ?? '' }}</strong>
+										<small class="text-muted d-block">{{ row.user.email }}</small>
+									</span>
+									<span class="badge bg-success">{{ row.bestPct|number_format(2, ',', ' ') }}%</span>
+								</li>
+							{% else %}
+								<li class="list-group-item text-muted">Aucune donnée</li>
+							{% endfor %}
+						</ul>
+					</div>
+				</div>
+			</div>
+
+			<div class="col-12 col-lg-6">
+				<div class="card h-100 shadow-sm">
+					<div class="card-body">
+						<h5 class="card-title mb-2">Dernières tentatives</h5>
+						<ul class="list-group list-group-flush">
+							{% for t in lastAttempts %}
+								<li class="list-group-item d-flex justify-content-between align-items-center">
+									<span>
+										<strong>{{ t.utilisateur ? (t.utilisateur.prenom ~ ' ' ~ t.utilisateur.nom) : '' }}</strong>
+										<small class="text-muted d-block">{{ t.quiz ? t.quiz.titre : '' }}
+											•
+											{{ t.dateDebut ? t.dateDebut|date('Y-m-d H:i') : '' }}</small>
+									</span>
+									<span class="badge bg-secondary">{{ t.pourcentage is not null ? t.pourcentage ~ '%' : '-' }}</span>
+								</li>
+							{% else %}
+								<li class="list-group-item text-muted">Aucune donnée</li>
+							{% endfor %}
+						</ul>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+{% endblock %}

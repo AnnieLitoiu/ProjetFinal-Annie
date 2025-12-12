@@ -48,4 +48,39 @@ class UtilisateurRepository extends ServiceEntityRepository implements PasswordU
 
         return $qb->getQuery()->getResult();
     }
+
+    /**
+     * @return array<int, array{user: Utilisateur, bestPct: float, attempts: int}>
+     */
+    public function leaderboard(string $q = '', ?int $quizId = null): array
+    {
+        $qb = $this->createQueryBuilder('u')
+            ->leftJoin('u.tentatives', 't')
+            ->addSelect('COALESCE(MAX(t.pourcentage), 0) AS bestPct')
+            ->addSelect('COUNT(t.id) AS attemptsCount');
+
+        if ($q !== '') {
+            $qb->andWhere('LOWER(u.email) LIKE :q OR LOWER(u.prenom) LIKE :q OR LOWER(u.nom) LIKE :q')
+                ->setParameter('q', '%' . mb_strtolower($q) . '%');
+        }
+
+        if ($quizId !== null && $quizId > 0) {
+            $qb->andWhere('t.quiz = :quizId')
+                ->setParameter('quizId', $quizId);
+        }
+
+        $qb->groupBy('u.id')
+            ->orderBy('bestPct', 'DESC');
+
+        $rows = $qb->getQuery()->getResult();
+
+        return array_map(
+            fn($r) => [
+                'user' => $r[0],
+                'bestPct' => (float) $r['bestPct'],
+                'attempts' => (int) $r['attemptsCount'],
+            ],
+            $rows
+        );
+    }
 }

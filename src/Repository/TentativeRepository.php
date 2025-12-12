@@ -91,4 +91,32 @@ class TentativeRepository extends ServiceEntityRepository
             ->orderBy('t.dateDebut', 'DESC')                    // trie par date de début décroissante
             ->getQuery();                                       // renvoie la requête
     }
+
+    /**
+     * Moyenne globale des pourcentages sur toutes les tentatives.
+     */
+    public function moyennePourcentage(): float
+    {
+        $avg = $this->createQueryBuilder('t')
+            ->select('AVG(COALESCE(t.pourcentage, 0)) as avgPct')
+            ->getQuery()
+            ->getSingleScalarResult();
+
+        return (float) $avg;
+    }
+
+    /**
+     * Dernières tentatives (avec utilisateur et quiz) limitées à $limit.
+     * @return Tentative[]
+     */
+    public function derniereListe(int $limit = 5): array
+    {
+        return $this->createQueryBuilder('t')
+            ->leftJoin('t.utilisateur', 'u')->addSelect('u')
+            ->leftJoin('t.quiz', 'q')->addSelect('q')
+            ->orderBy('t.dateDebut', 'DESC')
+            ->setMaxResults($limit)
+            ->getQuery()
+            ->getResult();
+    }
 }

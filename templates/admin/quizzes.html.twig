@@ -1,0 +1,41 @@
+{% extends 'base.html.twig' %}
+{% block title %}Tous les quiz
+{% endblock %}
+
+{% block body %}
+	<div class="container py-4">
+		<div class="d-flex justify-content-between align-items-center mb-3">
+			<h1 class="mb-0">Tous les quiz</h1>
+			<a class="btn btn-outline-secondary" href="{{ path('admin_users') }}">← Retour tableau de bord</a>
+		</div>
+
+		<div class="table-responsive">
+			<table class="table table-sm align-middle">
+				<thead>
+					<tr>
+						<th>#</th>
+						<th>Titre</th>
+						<th>Niveau</th>
+						<th>Questions</th>
+						<th>Tentatives</th>
+					</tr>
+				</thead>
+				<tbody>
+					{% for q in quizzes %}
+						<tr>
+							<td>{{ q.id }}</td>
+							<td>{{ q.titre }}</td>
+							<td>{{ q.niveau ? (q.niveau.nom ?? q.niveau.id) : '' }}</td>
+							<td>{{ q.questions|length }}</td>
+							<td>{{ q.tentatives|length }}</td>
+						</tr>
+					{% else %}
+						<tr>
+							<td colspan="5" class="text-center text-muted">Aucun quiz.</td>
+						</tr>
+					{% endfor %}
+				</tbody>
+			</table>
+		</div>
+	</div>
+{% endblock %}
