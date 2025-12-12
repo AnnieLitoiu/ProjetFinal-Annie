@@ -19,17 +19,25 @@ final class AccueilController extends AbstractController
 
     #[Route('/accueil/welcome', name: 'accueil_welcome')]
     public function index(): Response
-    { 
-        return $this->render('accueil/index.html.twig');
+    {
+        // Rendu de la page
+        $response = $this->render('accueil/index.html.twig');
+
+        // 🔒 Désactivation du cache navigateur (DEV / debug)
+        $response->headers->set('Cache-Control', 'no-cache, no-store, must-revalidate');
+        $response->headers->set('Pragma', 'no-cache');
+        $response->headers->set('Expires', '0');
+
+        return $response;
     }
 
     #[Route('/accueil/list-niveaux', name: 'accueil_list_niveaux')]
     public function listNiveaux(NiveauRepository $rep): Response
-    {   
-        // Récupération de tous les niveaux via le repository Doctrine
-        $vars = ['niveaux' => $rep->findAll()];
+    {
+        $vars = [
+            'niveaux' => $rep->findAll()
+        ];
 
-        // Passage de la liste des niveaux au template “list-niveaux”
         return $this->render('accueil/list-niveaux.html.twig', $vars);
     }
 }
