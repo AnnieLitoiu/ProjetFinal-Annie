@@ -3,7 +3,14 @@
 {% block title %}Log in{% endblock %}
 
 {% block body %}
-    <form method="post">
+    <div class="container my-5">
+        <div class="row align-items-center">
+            <div class="col-md-6 mb-4 mb-md-0 text-center">
+                <img src="{{ asset('assets/images/security.svg') }}" class="img-fluid" alt="Sécurité">
+            </div>
+            <div class="col-md-6">
+                <div class="border rounded p-4 shadow-sm">
+                    <form method="post">
         {% if error %}
             <div class="alert alert-danger">{{ error.messageKey|trans(error.messageData, 'security') }}</div>
         {% endif %}
@@ -57,7 +64,11 @@
                 Créer un compte
             </a>
         </p>
-    </form>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <script>
     (function() {
