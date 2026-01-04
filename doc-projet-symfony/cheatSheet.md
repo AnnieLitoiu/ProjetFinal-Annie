@@ -129,7 +129,6 @@ symfony console doctrine:fixtures:load --no-interaction
 
 composer require knplabs/knp-paginator-bundle //pour pagination
 
-
 Debug dans twig
 <pre>
     {{ dump(variable) }}
@@ -137,3 +136,21 @@ Debug dans twig
 
 Debug dans php
 dd($variable);
+```
+
+```
+## Mettre à jour le projet sur le serveur
+
+1. EN LOCAL
+git status
+git add .
+git commit -m "update"
+git push repo main
+
+2. CONNEXION SERVEUR
+ssh wad05@wad05.interface3.be
+# password: passInt3WAD
+
+3. ALLER DANS LE PROJET
+cd ~/public_html/project1
+ls
