@@ -68,20 +68,28 @@ class TentativeRepository extends ServiceEntityRepository
         $em->persist($tentative);
         $em->flush();
 
-        // Attribuer un badge "80%" si le score est >= 80 et éviter les doublons
-        if ($pourcentage >= 80) {
-            $user = $tentative->getUtilisateur();
-            $quiz = $tentative->getQuiz();
-            if ($user && $quiz) {
+        // Attribution de badges par palier (100% Or, 80% Argent, 50% Bronze) en évitant les doublons
+        $user = $tentative->getUtilisateur();
+        $quiz = $tentative->getQuiz();
+        if ($user && $quiz) {
+            $title = null;
+            if ($pourcentage >= 100) {
+                $title = 'Badge Or 100%';
+            } elseif ($pourcentage >= 80) {
+                $title = 'Badge Argent 80%';
+            } elseif ($pourcentage >= 50) {
+                $title = 'Badge Bronze 50%';
+            }
+
+            if ($title !== null) {
                 $conn = $em->getConnection();
-                // Vérification rapide d'existence (évite un doublon unique)
                 $exists = $conn->fetchOne(
                     'SELECT 1 FROM user_badge WHERE utilisateur_id = :u AND quiz_id = :q AND title = :t LIMIT 1',
-                    ['u' => $user->getId(), 'q' => $quiz->getId(), 't' => 'Badge 80%']
+                    ['u' => $user->getId(), 'q' => $quiz->getId(), 't' => $title]
                 );
                 if (!$exists) {
                     $badge = new UserBadge();
-                    $badge->setUtilisateur($user)->setQuiz($quiz)->setTitle('Badge 80%');
+                    $badge->setUtilisateur($user)->setQuiz($quiz)->setTitle($title);
                     $em->persist($badge);
                     $em->flush();
                 }

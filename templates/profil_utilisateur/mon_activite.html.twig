@@ -85,7 +85,15 @@
 							{% if i < 5 %}
 								<div class="list-group-item d-flex justify-content-between align-items-center">
 									<div>
-										<div class="fw-semibold">{{ t.quiz ? t.quiz.titre : 'Quiz' }}</div>
+										<div class="fw-semibold">
+											{{ t.quiz ? t.quiz.titre : 'Quiz' }}
+											{% if badges is defined and badges is not empty and t.quiz %}
+												{% set hasBadge = (badges|filter(b => b.quiz and b.quiz.id == t.quiz.id))|length > 0 %}
+												{% if hasBadge %}
+													<span class="badge bg-success ms-2" title="Badge 80%">🏅</span>
+												{% endif %}
+											{% endif %}
+										</div>
 										<div class="text-muted small">Le
 											{{ (t.dateFin ?? t.dateDebut)|date('d/m/Y H:i') }}</div>
 									</div>
@@ -108,27 +116,129 @@
 			<div class="col-lg-5">
 				<h2 class="h5 mb-3">Objectifs</h2>
 				<div class="card mb-3 shadow-sm">
-					<div class="card-body">
-						<div class="fw-semibold mb-1">Atteindre 80% sur un quiz</div>
-						<div class="progress" role="progressbar" aria-label="Progression objectif">
-							<div class="progress-bar" style="width: {{ bestPct }}%"></div>
-						</div>
-					</div>
+				<div class="card-body">
+					<table class="table table-sm align-middle mb-0">
+					<tbody>
+						<tr>
+						<td class="fs-5" style="width:36px;">🥇</td>
+						<td>Badge Or</td>
+						<td>100%</td>
+						</tr>
+						<tr>
+						<td class="fs-5">🥈</td>
+						<td>Badge Argent</td>
+						<td>80%+</td>
+						</tr>
+						<tr>
+						<td class="fs-5">🥉</td>
+						<td>Badge Bronze</td>
+						<td>50%+</td>
+						</tr>
+					</tbody>
+					</table>
 				</div>
+				</div>
+	
 
 				<h2 class="h5 mb-3">Badges</h2>
 				<div class="card shadow-sm">
-					<div class="card-body text-muted">
-						Bientôt ici: vos badges gagnés et ceux à débloquer.
-					</div>
+					{% if badges is defined and badges is not empty %}
+						<div
+							class="card-body">
+							{# Résumé des badges #}
+							{% set totalTentatives = tentatives|length %}
+							{% set seenQuiz = {} %}
+							{% for t in tentatives %}
+								{% if t.quiz %}
+									{% set seenQuiz = seenQuiz|merge({ (t.quiz.id): true }) %}
+								{% endif %}
+							{% endfor %}
+							{% set distinctAttempted = seenQuiz|length %}
+
+							{% set seenBadgeQuizzes = {} %}
+							{% for b in badges %}
+								{% if b.quiz %}
+									{% set seenBadgeQuizzes = seenBadgeQuizzes|merge({ (b.quiz.id): true }) %}
+								{% endif %}
+							{% endfor %}
+							{% set distinctBadgeQuizzes = seenBadgeQuizzes|length %}
+
+							<div class="fw-semibold mb-1">
+								Vous avez obtenu
+								{{ badges|length }}
+								{{ badges|length > 1 ? 'badges' : 'badge' }}
+								pour
+								{{ distinctBadgeQuizzes }}
+								{{ distinctBadgeQuizzes > 1 ? 'quiz' : 'quiz' }}
+								sur
+								{{ distinctAttempted }}
+								{{ distinctAttempted > 1 ? 'quiz joués' : 'quiz joué' }}.
+							</div>
+							{# Comptage par type de badge #}
+							{% set goldCount = 0 %}
+							{% set silverCount = 0 %}
+							{% set bronzeCount = 0 %}
+							{% for b in badges %}
+							{% set title = b.title|default('') %}
+							{% if 'Or' in title or '100' in title %}
+								{% set goldCount = goldCount + 1 %}
+							{% elseif 'Argent' in title or '80' in title %}
+								{% set silverCount = silverCount + 1 %}
+							{% elseif 'Bronze' in title or '50' in title %}
+								{% set bronzeCount = bronzeCount + 1 %}
+							{% endif %}
+							{% endfor %}
+
+							{# Lignes de résumé par type (s’affichent seulement si > 0) #}
+							{% if goldCount > 0 %}
+							<div>Vous avez obtenu {{ goldCount }} badge{{ goldCount > 1 ? 's' : '' }} Or 🥇.</div>
+							{% endif %}
+							{% if silverCount > 0 %}
+							<div>Vous avez obtenu {{ silverCount }} badge{{ silverCount > 1 ? 's' : '' }} Argent 🥈.</div>
+							{% endif %}
+							{% if bronzeCount > 0 %}
+							<div>Vous avez obtenu {{ bronzeCount }} badge{{ bronzeCount > 1 ? 's' : '' }} Bronze 🥉.</div>
+							{% endif %}
+							<div class="mt-2"></div>
+						</div>
+						
+
+					{% else %}
+						<div class="card-body text-muted">
+							{% set totalTentatives = tentatives|length %}
+							{% set seenQuiz = {} %}
+							{% for t in tentatives %}
+								{% if t.quiz %}
+									{% set seenQuiz = seenQuiz|merge({ (t.quiz.id): true }) %}
+								{% endif %}
+							{% endfor %}
+							{% set distinctAttempted = seenQuiz|length %}
+							Aucun badge pour le moment. Vous avez obtenu 0 badge sur
+							{{ distinctAttempted }}
+							{{ distinctAttempted > 1 ? 'quiz joués' : 'quiz joué' }}.
+						</div>
+					{% endif %}
 				</div>
 			</div>
 		</div>
 
 		<hr class="my-4">
 
-		<h2 class="h5 mb-3">Mes quiz effectués</h2>
+		<h2 class="h5 mb-3 d-flex justify-content-between align-items-center">
+		<span>Mes quiz effectués</span>
+		<button id="filterBadgeBtn" class="btn btn-outline-primary btn-sm">Voir tous mes quiz avec badge</button>
+		</h2>
 		{% set seen = {} %}
+
+		{# Ensemble des quiz ayant au moins un badge #}
+		{% set badgeQuizIdsSet = {} %}
+		{% if badges is defined %}
+		{% for b in badges %}
+			{% if b.quiz %}
+			{% set badgeQuizIdsSet = badgeQuizIdsSet|merge({ (b.quiz.id): true }) %}
+			{% endif %}
+		{% endfor %}
+		{% endif %}
 		<div class="row g-3">
 			{% for t in tentatives %}
 				{% if t.quiz and (seen[t.quiz.id] is not defined) %}

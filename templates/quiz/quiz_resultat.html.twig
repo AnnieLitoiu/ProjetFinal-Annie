@@ -1,170 +1,189 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Résultats du quiz{% endblock %}
+{% block title %}Résultats du quiz
+{% endblock %}
 
 {% block stylesheets %}
-<style>
-  .text-turquoise { color:#0E7478!important; }
-  .bg-turquoise   { background-color:#0E7478!important; }
+	<style>
+		.text-turquoise {
+			color: #0E7478 !important;
+		}
+		.bg-turquoise {
+			background-color: #0E7478 !important;
+		}
 
-  .btn-outline-turquoise {
-    color:#0E7478; border:1px solid #005f5f;
-  }
-  .btn-outline-turquoise:hover {
-    background:#0E7478; color:#fff;
-  }
+		.btn-outline-turquoise {
+			color: #0E7478;
+			border: 1px solid #005f5f;
+		}
+		.btn-outline-turquoise:hover {
+			background: #0E7478;
+			color: #fff;
+		}
 
-  .result-card {
-    border: none;
-    border-radius: 1rem;
-    box-shadow: 0 10px 25px rgba(0,0,0,.06);
-  }
+		.result-card {
+			border: none;
+			border-radius: 1rem;
+			box-shadow: 0 10px 25px rgba(0, 0, 0, .06);
+		}
 
-  .metric {
-    border-radius: .875rem;
-    padding: 1.25rem;
-    background: rgb(43, 163, 174);
-  }
+		.metric {
+			border-radius: 0.875rem;
+			padding: 1.25rem;
+			background: rgb(43, 163, 174);
+		}
 
-  .answer-item {
-    border-left: 4px solid #e9ecef;
-    padding-left: 1rem;
-    margin-left: .25rem;
-  }
-  .answer-item.is-correct { border-left-color: #005f5f; }
-  .answer-item.is-wrong   { border-left-color: #dc3545; }
-</style>
+		.answer-item {
+			border-left: 4px solid #e9ecef;
+			padding-left: 1rem;
+			margin-left: 0.25rem;
+		}
+		.answer-item.is-correct {
+			border-left-color: #005f5f;
+		}
+		.answer-item.is-wrong {
+			border-left-color: #dc3545;
+		}
+	</style>
 {% endblock %}
 
 {% block body %}
 
-{# Nombre de questions réellement jouées #}
-{% set nbQuestions = (tentative.questionIds|default([])|length > 0) ? tentative.questionIds|length : (tentative.nombreQuestions ?? tentative.nbQuestions ?? total_questions) %}
-{# Couleur du badge #}
-{% set badgeClass = pourcentage >= 80 ? 'bg-success'
+	{# Nombre de questions réellement jouées #}
+	{% set nbQuestions = (tentative.questionIds|default([])|length > 0) ? tentative.questionIds|length : (tentative.nombreQuestions ?? tentative.nbQuestions ?? total_questions) %}
+	{# Couleur du badge #}
+	{% set badgeClass = pourcentage >= 80 ? 'bg-success'
                     : (pourcentage >= 50 ? 'bg-warning' : 'bg-danger') %}
 
-<div class="container my-4 my-md-5">
-  <div class="card result-card p-3 p-md-4">
-    <div class="row g-4 align-items-center">
-      <div class="col-12 col-md-4 text-center">
-        <div>
-          <div class="display-5 fw-bold">
-            {{ reponses_correctes }}/{{ nbQuestions }}
-          </div>
-
-          <div class="h5 mt-2">
-            <span class="badge {{ badgeClass }} px-3 py-2">{{ pourcentage }}%</span>
-          </div>
-
-          <div class="mt-2">
-            {% if pourcentage >= 80 %}
-              <span class="text-success fw-semibold">Excellent</span>
-            {% elseif pourcentage >= 50 %}
-              <span class="text-warning fw-semibold">Tu peux mieux faire</span>
-            {% else %}
-              <span class="text-danger fw-semibold">À améliorer</span>
-            {% endif %}
-          </div>
-
-          <div class="progress mt-3"
-               role="progressbar"
-               aria-valuenow="{{ pourcentage }}"
-               aria-valuemin="0"
-               aria-valuemax="100"
-               style="height:10px;">
-            <div class="progress-bar {{ badgeClass }}"
-                 style="width: {{ pourcentage }}%"></div>
-          </div>
+	<div class="container my-4 my-md-5">
+		<div class="card result-card p-3 p-md-4">
+			{% if pourcentage >= 100 %}
+        <div class="alert alert-warning text-dark mb-3" role="alert">
+          Félicitations, vous avez gagné un badge Or 🥇 !
         </div>
-      </div>
-
-      <div class="col-12 col-md-8">
-        <div class="row g-3">
-          <div class="col-12 col-sm-4">
-            <div class="metric text-center">
-              <div class="h1 mb-0">{{ reponses_correctes }}</div>
-              <div class="text-muted small">Bonnes réponses</div>
-            </div>
-          </div>
-
-          <div class="col-12 col-sm-4">
-            <div class="metric text-center">
-              <div class="h1 mb-0">{{ temps_ecoule_label ?? '00:00' }}</div>
-              <div class="text-muted small">Temps écoulé</div>
-            </div>
-          </div>
-
-          <div class="col-12 col-sm-4">
-            <div class="metric text-center">
-              <div class="h1 mb-0">{{ pourcentage }}%</div>
-              <div class="text-muted small">Score final</div>
-            </div>
-          </div>
+      {% elseif pourcentage >= 80 %}
+        <div class="alert alert-success mb-3" role="alert">
+          Félicitations, vous avez gagné un badge Argent 🥈 !
         </div>
-      </div>
-    </div>
+      {% elseif pourcentage >= 50 %}
+        <div class="alert alert-secondary mb-3" role="alert">
+          Bravo, vous avez gagné un badge Bronze 🥉 !
+        </div>
+      {% endif %}
+			<div class="row g-4 align-items-center">
+				<div class="col-12 col-md-4 text-center">
+					<div>
+						<div class="display-5 fw-bold">
+							{{ reponses_correctes }}/{{ nbQuestions }}
+						</div>
 
-    <hr class="my-4">
+						<div class="h5 mt-2">
+							<span class="badge {{ badgeClass }} px-3 py-2">{{ pourcentage }}%</span>
+						</div>
 
-    <h5 class="mb-3">Détails des réponses</h5>
+						<div class="mt-2">
+							{% if pourcentage >= 80 %}
+								<span class="text-success fw-semibold">Excellent</span>
+							{% elseif pourcentage >= 50 %}
+								<span class="text-warning fw-semibold">Tu peux mieux faire</span>
+							{% else %}
+								<span class="text-danger fw-semibold">À améliorer</span>
+							{% endif %}
+						</div>
 
-    {% if reponses_details is defined and reponses_details|length > 0 %}
-      <div class="list-group list-group-flush">
-        {% for item in reponses_details %}
-          {% set state = item.est_correcte ? 'is-correct' : 'is-wrong' %}
+						<div class="progress mt-3" role="progressbar" aria-valuenow="{{ pourcentage }}" aria-valuemin="0" aria-valuemax="100" style="height:10px;">
+							<div class="progress-bar {{ badgeClass }}" style="width: {{ pourcentage }}%"></div>
+						</div>
+					</div>
+				</div>
 
-          <div class="list-group-item py-3 answer-item {{ state }}">
-            <div class="d-flex align-items-start justify-content-between">
-              <div class="me-3">
-                <div class="fw-semibold">
-                  Question {{ item.numero }} : {{ item.intitule }}
-                </div>
+				<div class="col-12 col-md-8">
+					<div class="row g-3">
+						<div class="col-12 col-sm-4">
+							<div class="metric text-center">
+								<div class="h1 mb-0">{{ reponses_correctes }}</div>
+								<div class="text-muted small">Bonnes réponses</div>
+							</div>
+						</div>
 
-                {% if item.est_correcte %}
-                  <div class="mt-1 text-success">
-                    ✅ Votre réponse :
-                    <strong>{{ item.votre_reponse }}</strong>
-                  </div>
-                {% else %}
-                  <div class="mt-1 text-danger">
-                    ❌ Votre réponse :
-                    <strong>{{ item.votre_reponse ?? '—' }}</strong>
-                  </div>
-                  <div class="text-success mt-1">
-                    ✅ Bonne réponse :
-                    <strong>{{ item.bonne_reponse }}</strong>
-                  </div>
-                {% endif %}
-              </div>
+						<div class="col-12 col-sm-4">
+							<div class="metric text-center">
+								<div class="h1 mb-0">{{ temps_ecoule_label ?? '00:00' }}</div>
+								<div class="text-muted small">Temps écoulé</div>
+							</div>
+						</div>
 
-              <div class="ms-auto">
-                {% if item.est_correcte %}
-                  <span class="badge bg-success">✔</span>
-                {% else %}
-                  <span class="badge bg-danger">✖</span>
-                {% endif %}
-              </div>
-            </div>
-          </div>
-        {% endfor %}
-      </div>
-    {% else %}
-      <div class="alert alert-secondary">
-        Le détail des réponses n’est pas disponible pour cette tentative.
-      </div>
-    {% endif %}
+						<div class="col-12 col-sm-4">
+							<div class="metric text-center">
+								<div class="h1 mb-0">{{ pourcentage }}%</div>
+								<div class="text-muted small">Score final</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
 
-    <div class="d-flex gap-2 mt-4">
-      <a class="btn btn-outline-turquoise"
-         href="{{ path('app_start_quiz', {id: tentative.quiz.id}) }}">
-        Refaire le quiz
-      </a>
-      <a class="btn btn-outline-turquoise"
-         href="{{ path('accueil_welcome') }}">
-        Retour à l’accueil
-      </a>
-    </div>
-  </div>
-</div>
+			<hr class="my-4">
+
+			<h5 class="mb-3">Détails des réponses</h5>
+
+			{% if reponses_details is defined and reponses_details|length > 0 %}
+				<div class="list-group list-group-flush">
+					{% for item in reponses_details %}
+						{% set state = item.est_correcte ? 'is-correct' : 'is-wrong' %}
+
+						<div class="list-group-item py-3 answer-item {{ state }}">
+							<div class="d-flex align-items-start justify-content-between">
+								<div class="me-3">
+									<div class="fw-semibold">
+										Question
+										{{ item.numero }}
+										:
+										{{ item.intitule }}
+									</div>
+
+									{% if item.est_correcte %}
+										<div class="mt-1 text-success">
+											✅ Votre réponse :
+											<strong>{{ item.votre_reponse }}</strong>
+										</div>
+									{% else %}
+										<div class="mt-1 text-danger">
+											❌ Votre réponse :
+											<strong>{{ item.votre_reponse ?? '—' }}</strong>
+										</div>
+										<div class="text-success mt-1">
+											✅ Bonne réponse :
+											<strong>{{ item.bonne_reponse }}</strong>
+										</div>
+									{% endif %}
+								</div>
+
+								<div class="ms-auto">
+									{% if item.est_correcte %}
+										<span class="badge bg-success">✔</span>
+									{% else %}
+										<span class="badge bg-danger">✖</span>
+									{% endif %}
+								</div>
+							</div>
+						</div>
+					{% endfor %}
+				</div>
+			{% else %}
+				<div class="alert alert-secondary">
+					Le détail des réponses n’est pas disponible pour cette tentative.
+				</div>
+			{% endif %}
+
+			<div class="d-flex gap-2 mt-4">
+				<a class="btn btn-outline-turquoise" href="{{ path('app_start_quiz', {id: tentative.quiz.id}) }}">
+					Refaire le quiz
+				</a>
+				<a class="btn btn-outline-turquoise" href="{{ path('accueil_welcome') }}">
+					Retour à l’accueil
+				</a>
+			</div>
+		</div>
+	</div>
 {% endblock %}
