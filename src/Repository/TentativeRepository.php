@@ -4,6 +4,7 @@ namespace App\Repository;
 
 use App\Entity\Quiz;
 use App\Entity\Tentative;
+use App\Entity\UserBadge;
 use DateTime;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
@@ -66,6 +67,26 @@ class TentativeRepository extends ServiceEntityRepository
         $em = $this->getEntityManager();
         $em->persist($tentative);
         $em->flush();
+
+        // Attribuer un badge "80%" si le score est >= 80 et éviter les doublons
+        if ($pourcentage >= 80) {
+            $user = $tentative->getUtilisateur();
+            $quiz = $tentative->getQuiz();
+            if ($user && $quiz) {
+                $conn = $em->getConnection();
+                // Vérification rapide d'existence (évite un doublon unique)
+                $exists = $conn->fetchOne(
+                    'SELECT 1 FROM user_badge WHERE utilisateur_id = :u AND quiz_id = :q AND title = :t LIMIT 1',
+                    ['u' => $user->getId(), 'q' => $quiz->getId(), 't' => 'Badge 80%']
+                );
+                if (!$exists) {
+                    $badge = new UserBadge();
+                    $badge->setUtilisateur($user)->setQuiz($quiz)->setTitle('Badge 80%');
+                    $em->persist($badge);
+                    $em->flush();
+                }
+            }
+        }
 
         return $tentative;
     }
