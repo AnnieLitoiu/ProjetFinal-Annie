@@ -1,83 +1,126 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Mon activité{% endblock %}
+{% block title %}Mon activité
+{% endblock %}
 
 {% block body %}
-<div class="container mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h1 class="mb-0">
-            Activité de :
-            {{ utilisateur.prenom is not empty ? utilisateur.prenom : '' }}
-            {{ utilisateur.nom is not empty ? utilisateur.nom : '' }}
-            {% if utilisateur.prenom is empty and utilisateur.nom is empty %}
-                {{ utilisateur.email }}
-            {% endif %}
-        </h1>
-    </div>
+	<div class="container mt-4">
+		<div class="d-flex justify-content-between align-items-center mb-3">
+			<h1 class="mb-0">
+				Activité de :
+				{{ utilisateur.prenom is not empty ? utilisateur.prenom : '' }}
+				{{ utilisateur.nom is not empty ? utilisateur.nom : '' }}
+				{% if utilisateur.prenom is empty and utilisateur.nom is empty %}
+					{{ utilisateur.email }}
+				{% endif %}
+			</h1>
+		</div>
 
-    {% if tentatives is empty %}
-        <p>Tu n’as pas encore fait de quiz.</p>
-    {% else %}
-        <table class="table mt-3">
-            <thead>
-                <tr>
-                    <th>Quiz</th>
-                    <th>Date et Heure</th>
-                    <th>Pourcentage (%)</th>
-                    <th>Temps alloué</th>
-                    <th>Temps réalisé</th>   
-                </tr>
-            </thead>
-            <tbody>
-                {% for tentative in tentatives %}
-                    <tr>
-                        <td>{{ tentative.quiz.titre ?? 'Quiz' }}</td>
+		{# KPIs calculés côté Twig #}
+		{% set total = tentatives|length %}
+		{% set bestPct = 0 %}
+		{% set sumPct = 0 %}
+		{% set lastActivity = null %}
+		{% for t in tentatives %}
+			{% set pct = t.pourcentage ?? 0 %}
+			{% if pct > bestPct %}
+				{% set bestPct = pct %}
+			{% endif %}
+			{% set sumPct = sumPct + pct %}
+			{% set d = t.dateFin ?: t.dateDebut %}
+			{% if d is not null %}
+				{% if lastActivity is null or d > lastActivity %}
+					{% set lastActivity = d %}
+				{% endif %}
+			{% endif %}
+		{% endfor %}
+		{% set avgPct = total > 0 ? (sumPct / total) : 0 %}
 
-                        <td>
-                            {% if tentative.dateFin %}
-                                {{ tentative.dateFin|date('d/m/Y H:i') }}
-                            {% else %}
-                                {{ tentative.dateDebut|date('d/m/Y H:i') }}
-                            {% endif %}
-                        </td>
+		<div class="row g-3 mb-4">
+			<div class="col-6 col-md-3">
+				<div class="card shadow-sm h-100">
+					<div class="card-body">
+						<div class="text-muted small">Quiz terminés</div>
+						<div class="fs-3 fw-bold">{{ total }}</div>
+					</div>
+				</div>
+			</div>
+			<div class="col-6 col-md-3">
+				<div class="card shadow-sm h-100">
+					<div class="card-body">
+						<div class="text-muted small">Meilleur score</div>
+						<div class="fs-3 fw-bold">{{ bestPct|number_format(0) }}%</div>
+					</div>
+				</div>
+			</div>
+			<div class="col-6 col-md-3">
+				<div class="card shadow-sm h-100">
+					<div class="card-body">
+						<div class="text-muted small">Moyenne</div>
+						<div class="fs-3 fw-bold">{{ avgPct|number_format(0) }}%</div>
+					</div>
+				</div>
+			</div>
+			<div class="col-6 col-md-3">
+				<div class="card shadow-sm h-100">
+					<div class="card-body">
+						<div class="text-muted small">Dernière activité</div>
+						<div class="fs-6 fw-semibold">{{ lastActivity ? (lastActivity|date('d/m/Y H:i')) : '—' }}</div>
+					</div>
+				</div>
+			</div>
+		</div>
 
-                        <td>
-                            {% set pct = tentative.pourcentage ?? 0 %}
-                            {% if pct >= 80 %}
-                                <span class="badge bg-success">{{ pct }}%</span>
-                            {% elseif pct >= 50 %}
-                                <span class="badge bg-warning text-dark">{{ pct }}%</span>
-                            {% else %}
-                                <span class="badge bg-danger">{{ pct }}%</span>
-                            {% endif %}
-                        </td>
+		<div class="row g-4 mb-3">
+			<div class="col-lg-7">
+				<h2 class="h5 mb-3">Historique récent</h2>
+				{% if tentatives is empty %}
+					<div class="alert alert-info">Aucune activité récente. Lance un quiz pour commencer.</div>
+				{% else %}
+					<div
+						class="list-group">
+						{# Affiche les 5 plus récentes "à peu près" (ordre non garanti si non trié en base) #}
+						{% set i = 0 %}
+						{% for t in tentatives %}
+							{% if i < 5 %}
+								<div class="list-group-item d-flex justify-content-between align-items-center">
+									<div>
+										<div class="fw-semibold">{{ t.quiz ? t.quiz.titre : 'Quiz' }}</div>
+										<div class="text-muted small">Le
+											{{ (t.dateFin ?? t.dateDebut)|date('d/m/Y H:i') }}</div>
+									</div>
+									<div class="text-end">
+										<div class="fw-bold">{{ (t.pourcentage ?? 0)|number_format(0) }}%</div>
+										<a class="btn btn-outline-turquoise btn-sm mt-1" href="#">Rejouer</a>
+									</div>
+								</div>
+								{% set i = i + 1 %}
+							{% endif %}
+						{% endfor %}
+					</div>
+				{% endif %}
+			</div>
 
-                        <td>
-                            {% if tentative.tempsAlloueSecondes %}
-                                {% set allo = tentative.tempsAlloueSecondes %}
-                                {% set minutes = allo // 60 %}
-                                {% set secondes = allo % 60 %}
-                                {{ minutes }} min {{ secondes }} s
-                            {% else %}
-                                -
-                            {% endif %}
-                        </td>
+			<div class="col-lg-5">
+				<h2 class="h5 mb-3">Objectifs</h2>
+				<div class="card mb-3 shadow-sm">
+					<div class="card-body">
+						<div class="fw-semibold mb-1">Atteindre 80% sur un quiz</div>
+						<div class="progress" role="progressbar" aria-label="Progression objectif">
+							<div class="progress-bar" style="width: {{ bestPct }}%"></div>
+						</div>
+					</div>
+				</div>
 
-                        <td>
-                            {% if tentative.dateFin %}
-                                {% set diff = tentative.dateFin.timestamp - tentative.dateDebut.timestamp %}
-                                {% set m = diff // 60 %}
-                                {% set s = diff % 60 %}
-                                {{ m }} min {{ s }} s
-                            {% else %}
-                                -
-                            {% endif %}
-                        </td>
+				<h2 class="h5 mb-3">Badges</h2>
+				<div class="card shadow-sm">
+					<div class="card-body text-muted">
+						Bientôt ici: vos badges gagnés et ceux à débloquer.
+					</div>
+				</div>
+			</div>
+		</div>
 
-                    </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    {% endif %}
-</div>
+		
+	</div>
 {% endblock %}
