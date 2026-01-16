@@ -1,4 +1,4 @@
-{% extends 'base.html.twig' %}
+﻿{% extends 'base.html.twig' %}
 
 {% block title %}Mon activité
 {% endblock %}
@@ -36,7 +36,7 @@
 		{% endfor %}
 		{% set avgPct = total > 0 ? (sumPct / total) : 0 %}
 
-		<div class="row g-3 mb-4">
+		<div class="row g-4 mb-4">
 			<div class="col-6 col-md-3">
 				<div class="card shadow-sm h-100">
 					<div class="card-body">
@@ -71,76 +71,80 @@
 			</div>
 		</div>
 
-		<div class="row g-4 mb-3">
+		<div class="row g-4 mb-4">
 			<div class="col-lg-7">
-				<h2 class="h5 mb-3">Historique récent</h2>
+				<h2 class="h5 fw-semibold mb-4">Historique</h2>
 				{% if tentatives is empty %}
 					<div class="alert alert-info">Aucune activité récente. Lance un quiz pour commencer.</div>
 				{% else %}
-					<div
-						class="list-group">
-						{# Affiche les 5 plus récentes "à peu près" (ordre non garanti si non trié en base) #}
-						{% set i = 0 %}
-						{% for t in tentatives %}
-							{% if i < 5 %}
-								<div class="list-group-item d-flex justify-content-between align-items-center">
-									<div>
-										<div class="fw-semibold">
-											{{ t.quiz ? t.quiz.titre : 'Quiz' }}
-											{% if badges is defined and badges is not empty and t.quiz %}
-												{% set hasBadge = (badges|filter(b => b.quiz and b.quiz.id == t.quiz.id))|length > 0 %}
-												{% if hasBadge %}
-													<span class="badge bg-success ms-2" title="Badge 80%">🏅</span>
+					{% set tentativesSorted = tentatives|sort((a, b) => (((a.dateFin ?? a.dateDebut) < (b.dateFin ?? b.dateDebut)) ? 1 : -1)) %}
+					<div class="list-group">
+						{% for t in tentativesSorted %}
+							<div class="list-group-item d-flex justify-content-between align-items-center py-3">
+								<div>
+									<div class="fw-semibold mb-1">
+										{{ (t.quiz ? t.quiz.titre : 'Quiz')|replace({'#': ''}) }}
+										{% if badges is defined and badges is not empty and t.quiz %}
+											{% set matching = badges|filter(b => b.quiz and b.quiz.id == t.quiz.id) %}
+											{% if matching|length > 0 %}
+												{% set title = matching|first.title|default('') %}
+												{% if 'Or' in title or '100' in title %}
+													{% set icon = '&#129351;' %}
+												{% elseif 'Argent' in title or '80' in title %}
+													{% set icon = '&#129352;' %}
+												{% elseif 'Bronze' in title or '50' in title %}
+													{% set icon = '&#129353;' %}
+												{% else %}
+													{% set icon = '&#127941;' %}
 												{% endif %}
+												<span class="badge bg-success ms-2" title="{{ title|e }}">{{ icon|raw }}</span>
 											{% endif %}
-										</div>
-										<div class="text-muted small">Le
-											{{ (t.dateFin ?? t.dateDebut)|date('d/m/Y H:i') }}</div>
-									</div>
-									<div class="text-end">
-										<div class="fw-bold">{{ (t.pourcentage ?? 0)|number_format(0) }}%</div>
-										{% if t.quiz %}
-											<a class="btn btn-outline-turquoise btn-sm mt-1" href="{{ path('app_start_quiz', {'id': t.quiz.id}) }}">Rejouer</a>
-										{% else %}
-											<button class="btn btn-outline-secondary btn-sm mt-1" disabled>Rejouer</button>
 										{% endif %}
 									</div>
+									<div class="text-muted small">Le
+										{{ (t.dateFin ?? t.dateDebut)|date('d/m/Y H:i') }}</div>
 								</div>
-								{% set i = i + 1 %}
-							{% endif %}
+								<div class="text-end">
+									<div class="fw-bold">{{ (t.pourcentage ?? 0)|number_format(0) }}%</div>
+									{% if t.quiz %}
+										<a class="btn btn-outline-turquoise btn-sm mt-1" href="{{ path('app_start_quiz', {'id': t.quiz.id}) }}">Rejouer</a>
+									{% else %}
+										<button class="btn btn-outline-secondary btn-sm mt-1" disabled>Rejouer</button>
+									{% endif %}
+								</div>
+							</div>
 						{% endfor %}
 					</div>
 				{% endif %}
 			</div>
 
 			<div class="col-lg-5">
-				<h2 class="h5 mb-3">Objectifs</h2>
+				<h2 class="h5 fw-semibold mb-4">Objectifs</h2>
 				<div class="card mb-3 shadow-sm">
-				<div class="card-body">
-					<table class="table table-sm align-middle mb-0">
-					<tbody>
-						<tr>
-						<td class="fs-5" style="width:36px;">🥇</td>
-						<td>Badge Or</td>
-						<td>100%</td>
-						</tr>
-						<tr>
-						<td class="fs-5">🥈</td>
-						<td>Badge Argent</td>
-						<td>80%+</td>
-						</tr>
-						<tr>
-						<td class="fs-5">🥉</td>
-						<td>Badge Bronze</td>
-						<td>50%+</td>
-						</tr>
-					</tbody>
-					</table>
+					<div class="card-body">
+						<table class="table table-sm align-middle mb-0">
+							<tbody>
+								<tr>
+									<td class="fs-5" style="width:36px;">&#129351;</td>
+									<td>Badge Or</td>
+									<td>100%</td>
+								</tr>
+								<tr>
+									<td class="fs-5">&#129352;</td>
+									<td>Badge Argent</td>
+									<td>80%+</td>
+								</tr>
+								<tr>
+									<td class="fs-5">&#129353;</td>
+									<td>Badge Bronze</td>
+									<td>50%+</td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
 				</div>
-				</div>
-	
 
-				<h2 class="h5 mb-3">Badges</h2>
+				<h2 class="h5 fw-semibold mb-4">Badges</h2>
 				<div class="card shadow-sm">
 					{% if badges is defined and badges is not empty %}
 						<div
@@ -179,30 +183,37 @@
 							{% set silverCount = 0 %}
 							{% set bronzeCount = 0 %}
 							{% for b in badges %}
-							{% set title = b.title|default('') %}
-							{% if 'Or' in title or '100' in title %}
-								{% set goldCount = goldCount + 1 %}
-							{% elseif 'Argent' in title or '80' in title %}
-								{% set silverCount = silverCount + 1 %}
-							{% elseif 'Bronze' in title or '50' in title %}
-								{% set bronzeCount = bronzeCount + 1 %}
-							{% endif %}
+								{% set title = b.title|default('') %}
+								{% if 'Or' in title or '100' in title %}
+									{% set goldCount = goldCount + 1 %}
+								{% elseif 'Argent' in title or '80' in title %}
+									{% set silverCount = silverCount + 1 %}
+								{% elseif 'Bronze' in title or '50' in title %}
+									{% set bronzeCount = bronzeCount + 1 %}
+								{% endif %}
 							{% endfor %}
 
 							{# Lignes de résumé par type (s’affichent seulement si > 0) #}
 							{% if goldCount > 0 %}
-							<div>Vous avez obtenu {{ goldCount }} badge{{ goldCount > 1 ? 's' : '' }} Or 🥇.</div>
+								<div>Vous avez obtenu
+									{{ goldCount }}
+									badge{{ goldCount > 1 ? 's' : '' }}
+									Or &#129351;.</div>
 							{% endif %}
 							{% if silverCount > 0 %}
-							<div>Vous avez obtenu {{ silverCount }} badge{{ silverCount > 1 ? 's' : '' }} Argent 🥈.</div>
+								<div>Vous avez obtenu
+									{{ silverCount }}
+									badge{{ silverCount > 1 ? 's' : '' }}
+									Argent &#129352;.</div>
 							{% endif %}
 							{% if bronzeCount > 0 %}
-							<div>Vous avez obtenu {{ bronzeCount }} badge{{ bronzeCount > 1 ? 's' : '' }} Bronze 🥉.</div>
+								<div>Vous avez obtenu
+									{{ bronzeCount }}
+									badge{{ bronzeCount > 1 ? 's' : '' }}
+									Bronze &#129353;.</div>
 							{% endif %}
 							<div class="mt-2"></div>
 						</div>
-						
-
 					{% else %}
 						<div class="card-body text-muted">
 							{% set totalTentatives = tentatives|length %}
@@ -221,51 +232,7 @@
 				</div>
 			</div>
 		</div>
-
-		<hr class="my-4">
-
-		<h2 class="h5 mb-3 d-flex justify-content-between align-items-center">
-		<span>Mes quiz effectués</span>
-		<button id="filterBadgeBtn" class="btn btn-outline-primary btn-sm">Voir tous mes quiz avec badge</button>
-		</h2>
-		{% set seen = {} %}
-
-		{# Ensemble des quiz ayant au moins un badge #}
-		{% set badgeQuizIdsSet = {} %}
-		{% if badges is defined %}
-		{% for b in badges %}
-			{% if b.quiz %}
-			{% set badgeQuizIdsSet = badgeQuizIdsSet|merge({ (b.quiz.id): true }) %}
-			{% endif %}
-		{% endfor %}
-		{% endif %}
-		<div class="row g-3">
-			{% for t in tentatives %}
-				{% if t.quiz and (seen[t.quiz.id] is not defined) %}
-					{% set seen = seen|merge({ (t.quiz.id): true }) %}
-					<div class="col-12 col-sm-6 col-lg-4">
-						<div class="card h-100 shadow-sm">
-							<div class="card-body d-flex flex-column">
-								<div class="fw-semibold mb-1">{{ t.quiz.titre }}</div>
-								<div class="text-muted small mb-2">Dernière fois:
-									{{ (t.dateFin ?? t.dateDebut)|date('d/m/Y H:i') }}</div>
-
-								<div class="mt-auto d-flex justify-content-between align-items-center">
-									<span class="badge bg-primary">{{ (t.pourcentage ?? 0)|number_format(0) }}%</span>
-									<a class="btn btn-outline-turquoise btn-sm" href="{{ path('app_start_quiz', {'id': t.quiz.id}) }}">Ouvrir</a>
-								</div>
-							</div>
-						</div>
-					</div>
-				{% endif %}
-			{% endfor %}
-			{% if seen|length == 0 %}
-				<div class="col-12">
-					<div class="alert alert-info">Vous n'avez encore effectué aucun quiz.</div>
-				</div>
-			{% endif %}
-		</div>
-
-
 	</div>
+
+	
 {% endblock %}

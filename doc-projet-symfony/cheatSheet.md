@@ -141,16 +141,11 @@ dd($variable);
 ```
 ## Mettre à jour le projet sur le serveur
 
-1. EN LOCAL
+EN LOCAL
 git status
 git add .
 git commit -m "update"
 git push repo main
 
-2. CONNEXION SERVEUR
-ssh wad05@wad05.interface3.be
-# password: passInt3WAD
 
-3. ALLER DANS LE PROJET
-cd ~/public_html/project1
-ls
+
